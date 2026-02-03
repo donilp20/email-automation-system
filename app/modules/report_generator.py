@@ -1,5 +1,3 @@
-# app/modules/report_generator.py (COMPLETE FIXED VERSION)
-
 import os
 from dataclasses import dataclass
 from datetime import date
@@ -8,7 +6,6 @@ from typing import List, Optional
 from langchain_community.llms import Ollama
 from langchain_core.prompts import PromptTemplate
 
-# Fix: Get config from environment directly
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://host.docker.internal:11434")
 

@@ -1,5 +1,3 @@
-# scripts/evaluate_parser.py
-
 import csv
 import json
 import os

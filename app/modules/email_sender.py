@@ -1,5 +1,3 @@
-# app/modules/email_sender.py
-
 import smtplib
 import ssl
 import os
@@ -7,7 +5,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Optional
 
-# Fix: Get config from environment directly
+# Get config from environment directly
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 

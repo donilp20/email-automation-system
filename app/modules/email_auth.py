@@ -1,17 +1,12 @@
-# app/modules/email_auth.py
-
 import hashlib
 from typing import Optional
 import os
 
 import streamlit as st
 
-# Fix: Use absolute import or get from os.getenv directly
 HASH_SALT = os.getenv("HASH_SALT", "change-me-in-env")
 
-
 def hash_token(value: str) -> str:
-    # optional: to avoid storing completely raw values
     data = (HASH_SALT + value).encode("utf-8")
     return hashlib.sha256(data).hexdigest()
 

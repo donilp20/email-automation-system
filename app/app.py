@@ -1,13 +1,9 @@
-# app/app.py (COMPLETE FIXED VERSION - All Syntax Errors Corrected)
-
 import streamlit as st
 from datetime import date
 import time
 
-# Fix: Use absolute imports from modules directory
 from modules import email_auth, email_sender, prompt_parser, report_generator
 
-# Import config directly
 import os
 APP_TITLE = os.getenv("APP_TITLE", "Email Automation System")
 
@@ -260,14 +256,14 @@ Today I:
     
     with col1:
         generate_and_send = st.button(
-            "🚀 Generate & Send",
+            "Generate & Send",
             type="primary",
             use_container_width=True,
         )
     
     with col2:
         preview_only = st.button(
-            "👁️ Preview Only",
+            "Preview Only",
             use_container_width=True,
         )
     
@@ -288,7 +284,7 @@ Today I:
             st.error(" Please enter your work log.")
             st.stop()
         
-        with st.spinner("🤖 Processing your work log..."):
+        with st.spinner(" Processing your work log..."):
             # Parse prompt
             recipient_email, tasks = prompt_parser.parse_prompt(raw_prompt)
             

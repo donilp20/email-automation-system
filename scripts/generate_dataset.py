@@ -1,5 +1,3 @@
-# scripts/generate_dataset.py
-
 import csv
 import json
 import os

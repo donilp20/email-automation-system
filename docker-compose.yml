@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: task-report-automation
+    ports:
+      - "8501:8501"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - OLLAMA_MODEL=llama3.1:8b
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+    volumes:
+      - ./app/data:/app/app/data
+      - ./app/prompts:/app/app/prompts
+    restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4

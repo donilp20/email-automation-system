@@ -1,0 +1,199 @@
+{
+  "total_samples": 1000,
+  "email_extraction": {
+    "accuracy": 1.0,
+    "correct": 1000,
+    "incorrect": 0,
+    "top_failures": []
+  },
+  "task_extraction": {
+    "avg_precision": 0.9372878427128427,
+    "avg_recall": 0.9653190476190476,
+    "avg_f1": 0.9493734407749114,
+    "exact_match_rate": 0.835,
+    "exact_matches": 835,
+    "partial_matches": 165,
+    "top_failures": [
+      {
+        "id": "2",
+        "predicted_count": 5,
+        "ground_truth_count": 4,
+        "precision": 0.6,
+        "recall": 0.75,
+        "f1": 0.6666666666666665,
+        "prompt_snippet": "\nRecipient: meera.manager@easycatering.in\nFor date: 2026-02-03\n\nSummary of today's work:\nImplemented user activity feature for restaurant analytics, W"
+      },
+      {
+        "id": "5",
+        "predicted_count": 5,
+        "ground_truth_count": 3,
+        "precision": 0.4,
+        "recall": 0.6666666666666666,
+        "f1": 0.5,
+        "prompt_snippet": "\nRecipient: john.manager@techcorp.com\nFor date: 2026-01-24\n\nTasks completed today:\nReviewed pull requests for easycatering-backend, Fixed medium-prior"
+      },
+      {
+        "id": "16",
+        "predicted_count": 5,
+        "ground_truth_count": 4,
+        "precision": 0.6,
+        "recall": 0.75,
+        "f1": 0.6666666666666665,
+        "prompt_snippet": "Recipient: sarah.lead@ecomlabs.io\n\nTasks completed today:\nRefactored navigation for better performance, Attended client sync meeting and reviewed time"
+      },
+      {
+        "id": "20",
+        "predicted_count": 8,
+        "ground_truth_count": 7,
+        "precision": 0.75,
+        "recall": 0.8571428571428571,
+        "f1": 0.7999999999999999,
+        "prompt_snippet": "To - alex.engineering@foodops.co\nDate: 2026-01-27\n\nWork log for today:\nReviewed pull requests for easycatering-mobile, Attended retrospective meeting "
+      },
+      {
+        "id": "21",
+        "predicted_count": 7,
+        "ground_truth_count": 6,
+        "precision": 0.7142857142857143,
+        "recall": 0.8333333333333334,
+        "f1": 0.7692307692307692,
+        "prompt_snippet": "Send to: meera.manager@easycatering.in\n\nTasks completed today:\nAttended client sync meeting and reviewed timelines, Refactored analytics dashboard for"
+      },
+      {
+        "id": "28",
+        "predicted_count": 4,
+        "ground_truth_count": 3,
+        "precision": 0.75,
+        "recall": 1.0,
+        "f1": 0.8571428571428571,
+        "prompt_snippet": "\nEmail this report to sarah.lead@ecomlabs.io\nDate: 2026-01-30\n\nSummary of today's work:\nReviewed pull requests for easycatering-backend, Updated docum"
+      },
+      {
+        "id": "34",
+        "predicted_count": 8,
+        "ground_truth_count": 7,
+        "precision": 0.75,
+        "recall": 0.8571428571428571,
+        "f1": 0.7999999999999999,
+        "prompt_snippet": "Email this report to priya.pm@finstack.io\n\nHere is what I completed today:\nInvestigated slow dashboard load times reported by client, Worked on restau"
+      },
+      {
+        "id": "38",
+        "predicted_count": 4,
+        "ground_truth_count": 3,
+        "precision": 0.75,
+        "recall": 1.0,
+        "f1": 0.8571428571428571,
+        "prompt_snippet": "\nTo - john.manager@techcorp.com\nFor date: 2026-02-03\n\nToday's tasks:\nUpdated documentation for navigation, Refactored order management for better test"
+      },
+      {
+        "id": "45",
+        "predicted_count": 7,
+        "ground_truth_count": 6,
+        "precision": 0.7142857142857143,
+        "recall": 0.8333333333333334,
+        "f1": 0.7692307692307692,
+        "prompt_snippet": "\nEmail this report to priya.pm@finstack.io\nFor date: 2026-02-02\n\nToday's tasks:\nImplemented sales summary feature for admin portal, Attended sprint pl"
+      },
+      {
+        "id": "51",
+        "predicted_count": 6,
+        "ground_truth_count": 5,
+        "precision": 0.6666666666666666,
+        "recall": 0.8,
+        "f1": 0.7272727272727272,
+        "prompt_snippet": "\nTo - alex.engineering@foodops.co\nFor date: 2026-02-03\n\nHere is what I completed today:\nFixed critical bug in order management module, took 1 hours, A"
+      },
+      {
+        "id": "53",
+        "predicted_count": 7,
+        "ground_truth_count": 6,
+        "precision": 0.7142857142857143,
+        "recall": 0.8333333333333334,
+        "f1": 0.7692307692307692,
+        "prompt_snippet": "Send to: john.manager@techcorp.com\nFor date: 2026-02-03\n\nWork log for today:\nWorked on new dashboard integration with Firebase, Updated documentation "
+      },
+      {
+        "id": "56",
+        "predicted_count": 7,
+        "ground_truth_count": 6,
+        "precision": 0.8571428571428571,
+        "recall": 1.0,
+        "f1": 0.923076923076923,
+        "prompt_snippet": "Send to: rahul.lead@mobilityx.com\nFor date: 2026-01-24\n\nWork log for today:\nImplemented new dashboard feature for admin portal, Attended retrospective"
+      },
+      {
+        "id": "59",
+        "predicted_count": 5,
+        "ground_truth_count": 3,
+        "precision": 0.4,
+        "recall": 0.6666666666666666,
+        "f1": 0.5,
+        "prompt_snippet": "\nSend to: alex.engineering@foodops.co\nDate: 2026-01-28\n\nTasks completed today:\nFixed medium-priority bug in navigation module, took 5 hours, Refactore"
+      },
+      {
+        "id": "61",
+        "predicted_count": 9,
+        "ground_truth_count": 6,
+        "precision": 0.4444444444444444,
+        "recall": 0.6666666666666666,
+        "f1": 0.5333333333333333,
+        "prompt_snippet": "Send to: meera.manager@easycatering.in\nFor date: 2026-02-02\n\nTasks completed today:\nWorked on order tracking integration with Razorpay, Updated docume"
+      },
+      {
+        "id": "62",
+        "predicted_count": 5,
+        "ground_truth_count": 4,
+        "precision": 0.6,
+        "recall": 0.75,
+        "f1": 0.6666666666666665,
+        "prompt_snippet": "Email this report to john.manager@techcorp.com\n\nTasks completed today:\nUpdated documentation for navigation, Reviewed pull requests for notification-s"
+      },
+      {
+        "id": "70",
+        "predicted_count": 6,
+        "ground_truth_count": 4,
+        "precision": 0.5,
+        "recall": 0.75,
+        "f1": 0.6,
+        "prompt_snippet": "Send to: priya.pm@finstack.io\nDate: 2026-01-27\n\nSummary of today's work:\nReviewed pull requests for notification-service, Worked on user activity inte"
+      },
+      {
+        "id": "85",
+        "predicted_count": 9,
+        "ground_truth_count": 6,
+        "precision": 0.4444444444444444,
+        "recall": 0.6666666666666666,
+        "f1": 0.5333333333333333,
+        "prompt_snippet": "\nTo - sarah.lead@ecomlabs.io\n\nHere is what I completed today:\nWorked on restaurant analytics integration with Gmail SMTP, Refactored reporting for bet"
+      },
+      {
+        "id": "90",
+        "predicted_count": 5,
+        "ground_truth_count": 4,
+        "precision": 0.6,
+        "recall": 0.75,
+        "f1": 0.6666666666666665,
+        "prompt_snippet": "\nRecipient: priya.pm@finstack.io\nDate: 2026-01-26\n\nTasks completed today:\nFixed medium-priority bug in order management module, took 3 hours, Attended"
+      },
+      {
+        "id": "93",
+        "predicted_count": 6,
+        "ground_truth_count": 5,
+        "precision": 0.6666666666666666,
+        "recall": 0.8,
+        "f1": 0.7272727272727272,
+        "prompt_snippet": "Email this report to rahul.lead@mobilityx.com\nDate: 2026-02-03\n\nToday's tasks:\nFixed critical bug in payments module, took 3 hours, Reviewed pull requ"
+      },
+      {
+        "id": "95",
+        "predicted_count": 8,
+        "ground_truth_count": 7,
+        "precision": 0.75,
+        "recall": 0.8571428571428571,
+        "f1": 0.7999999999999999,
+        "prompt_snippet": "\nTo - alex.engineering@foodops.co\nDate: 2026-01-30\n\nSummary of today's work:\nAttended retrospective meeting and reviewed timelines, Worked on new dash"
+      }
+    ]
+  }
+}

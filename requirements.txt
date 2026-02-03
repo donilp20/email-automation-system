@@ -1,0 +1,21 @@
+# requirements.txt
+
+# Core
+numpy ==1.26.4
+streamlit==1.39.0
+python-dotenv==1.0.1
+
+# LLM & AI
+langchain==0.3.0
+langchain-community==0.3.0
+langchain-core==0.3.0
+
+# HTTP & APIs
+requests==2.32.3
+httpx==0.27.0
+
+# Email (built-in smtplib is sufficient, but adding email-validator)
+email-validator==2.2.0
+
+# Utilities
+python-dateutil==2.9.0

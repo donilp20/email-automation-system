@@ -1,6 +1,6 @@
-#  Email Automation System
+# 📧 Email Task Report Automation System
 
-> **Transform your daily work log into professional email reports with automated generation and Gmail delivery.**
+> **Transform your daily work log into professional email reports with AI-powered generation and automated Gmail delivery.**
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.31-FF4B4B.svg)](https://streamlit.io/)
@@ -10,9 +10,9 @@
 
 ---
 
-##  Overview
+## 🎯 Overview
 
-**Email Task Report Automation System** is a designed to streamline your daily work reporting. Simply paste your work log in natural language, and the system automatically:
+**Email Task Report Automation System** is a production-ready web application designed to streamline your daily work reporting. Simply paste your work log in natural language, and the system automatically:
 
 - **Extracts** recipient email addresses
 - **Structures** your tasks intelligently
@@ -24,31 +24,31 @@
 
 ---
 
-##  Features
+## ✨ Features
 
-###  Email Generation
+### 🤖 AI-Powered Generation
 - **Local LLM Integration**: Llama 3.1 8B running via Ollama for privacy-first email generation
 - **Multiple Tone Options**: Choose between formal, neutral, or friendly communication styles
 - **Smart Fallback**: Template-based HTML generation when LLM is unavailable
 
-###  Intelligent Parsing
+### 📝 Intelligent Parsing
 - **Natural Language Input**: Paste tasks as bullets, numbered lists, or plain paragraphs
 - **Automatic Email Detection**: Extracts recipient addresses using regex and heuristics
 - **Context-Aware Structuring**: Identifies task headers, completions, and in-progress items
 
-###  Secure Email Delivery
+### 🔒 Secure Email Delivery
 - **Gmail SMTP**: Industry-standard TLS encryption (port 587)
 - **App Password Authentication**: Secure credential management without exposing main password
 - **Session-Only Storage**: Credentials stored in memory, never written to disk
 
-###  Deployment
+### 🐳 Production-Ready Deployment
 - **Fully Dockerized**: Consistent environment across all platforms
 - **Docker Compose**: One-command orchestration of app and dependencies
 - **Graceful Degradation**: Automatic fallback when services are unavailable
 
 ---
 
-##  Architecture
+## 🏗️ Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -85,7 +85,7 @@
 
 ---
 
-##  Tech Stack
+## 🛠️ Tech Stack
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
@@ -99,7 +99,7 @@
 
 ---
 
-##  Project Structure
+## 📂 Project Structure
 
 ```
 Email-Automation-System/
@@ -136,7 +136,7 @@ Email-Automation-System/
 
 ---
 
-##  Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -153,14 +153,14 @@ Before you begin, ensure you have:
 
 ### Installation
 
-####  Clone the Repository
+#### 1️⃣ Clone the Repository
 
 ```bash
 git clone https://github.com/your-username/email-automation-system.git
 cd email-automation-system
 ```
 
-####  Install and Configure Ollama
+#### 2️⃣ Install and Configure Ollama
 
 ```bash
 # Pull the Llama 3.1 8B model
@@ -180,7 +180,7 @@ curl http://localhost:11434/api/tags
 
 Expected output: JSON listing `llama3.1:8b`
 
-####  Build and Launch the Application
+#### 3️⃣ Build and Launch the Application
 
 ```bash
 # Build Docker images
@@ -198,7 +198,7 @@ docker logs -f task-report-automation
 Ollama connected: llama3.1:8b at http://host.docker.internal:11434
 ```
 
-####  Access the Application
+#### 4️⃣ Access the Application
 
 Open your browser and navigate to:
 ```
@@ -207,7 +207,7 @@ http://localhost:8501
 
 ---
 
-##  Gmail Setup
+## 🔐 Gmail Setup
 
 ### Creating an App Password
 
@@ -220,11 +220,11 @@ Since Gmail blocks direct password authentication on 2FA-enabled accounts, you m
 5. Click **"Generate"**
 6. Copy the **16-character password** (no spaces needed in the app)
 
- **Security Note:** Store this password securely. It grants full email sending access.
+⚠️ **Security Note:** Store this password securely. It grants full email sending access.
 
 ---
 
-##  Usage Guide
+## 📖 Usage Guide
 
 ### Step 1: Configure Gmail Credentials
 
@@ -233,7 +233,7 @@ In the **Streamlit sidebar**:
 2. Paste your 16-character app password
 3. Click **"Save"**
 
- The sidebar will confirm: *"Gmail credentials configured"*
+✅ The sidebar will confirm: *"Gmail credentials configured"*
 
 ### Step 2: Compose Your Work Log
 
@@ -271,17 +271,17 @@ Today's tasks:
 ### Step 4: Review Output
 
 The app displays:
--  **To:** Recipient email
--  **Subject:** "Daily Task Report - [Date]"
--  **Tasks Detected:** Count of parsed tasks
--  **Generation Method:** LLM or Fallback
--  **HTML Preview:** Full email rendering
+- ✉️ **To:** Recipient email
+- 📋 **Subject:** "Daily Task Report - [Date]"
+- 🔢 **Tasks Detected:** Count of parsed tasks
+- 🤖 **Generation Method:** LLM or Fallback
+- 👁️ **HTML Preview:** Full email rendering
 
 If satisfied, emails send instantly via Gmail SMTP.
 
 ---
 
-##  Example Scenarios
+## 🧪 Example Scenarios
 
 ### Scenario 1: Standard Daily Update
 
@@ -364,7 +364,7 @@ streamlit run app/app.py
 
 ---
 
-##  Core Modules
+## 🧩 Core Modules
 
 ### 1. `prompt_parser.py`
 
@@ -454,7 +454,7 @@ streamlit run app/app.py
 
 ---
 
-##  Troubleshooting
+## 🐛 Troubleshooting
 
 ### Issue: "Could not connect to Ollama"
 
@@ -520,22 +520,22 @@ streamlit run app/app.py
 
 ---
 
-##  Security Considerations
+## 🔒 Security Considerations
 
-###  Privacy-First Design
+### ✅ Privacy-First Design
 
 - **Local LLM**: All AI processing happens on your machine via Ollama
 - **No External APIs**: Zero data transmission to third-party AI providers
 - **In-Memory Credentials**: Gmail passwords stored only in session state
 - **No Disk Persistence**: Credentials never written to configuration files
 
-###  Email Security
+### ✅ Email Security
 
 - **TLS Encryption**: All SMTP connections use port 587 with StartTLS
 - **App Passwords**: Gmail authentication isolated from main account password
 - **Credential Isolation**: Each user session maintains separate credentials
 
-###  Best Practices
+### ⚠️ Best Practices
 
 1. **Keep repository private** if it contains test logs or real email addresses
 2. **Rotate app passwords** periodically (every 90 days recommended)
@@ -544,7 +544,7 @@ streamlit run app/app.py
 
 ---
 
-##  Extending the System
+## 🚀 Extending the System
 
 ### Suggested Enhancements
 
@@ -575,7 +575,7 @@ streamlit run app/app.py
 
 ---
 
-##  Testing
+## 🧪 Testing
 
 ### Parser Evaluation
 
@@ -599,7 +599,7 @@ python scripts/generate_dataset.py --samples 100
 
 ---
 
-##  Performance Metrics
+## 📊 Performance Metrics
 
 | Metric | Value | Notes |
 |--------|-------|-------|
@@ -611,7 +611,7 @@ python scripts/generate_dataset.py --samples 100
 
 ---
 
-##  Contributing
+## 🤝 Contributing
 
 Contributions are welcome! To contribute:
 
@@ -639,13 +639,13 @@ Contributions are welcome! To contribute:
 
 ---
 
-##  License
+## 📜 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-##  Acknowledgments
+## 🙏 Acknowledgments
 
 ### Technologies
 
@@ -661,7 +661,7 @@ Built to solve the daily pain point of manually formatting work reports for busy
 
 ---
 
-##  Contact & Support
+## 📞 Contact & Support
 
 - **Issues:** [GitHub Issues](https://github.com/your-username/email-automation-system/issues)
 - **Email:** your.email@example.com
@@ -669,19 +669,23 @@ Built to solve the daily pain point of manually formatting work reports for busy
 
 ---
 
-##  Changelog
+## 🗓️ Changelog
 
 ### v1.0.0 (2026-02-04)
--  Initial release
--  Local LLM integration via Ollama
--  Gmail SMTP support with app passwords
--  Full Docker containerization
--  Smart prompt parsing with task extraction
--  Multiple email tone options
--  Secure credential management
+- ✨ Initial release
+- 🤖 Local LLM integration via Ollama
+- 📧 Gmail SMTP support with app passwords
+- 🐳 Full Docker containerization
+- 📝 Smart prompt parsing with task extraction
+- 🎨 Multiple email tone options
+- 🔒 Secure credential management
 
 ---
 
 <div align="center">
+
+**Made with ❤️ by [Your Name]**
+
+If this project helped you, consider giving it a ⭐️ on GitHub!
 
 </div>

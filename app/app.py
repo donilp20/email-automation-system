@@ -59,18 +59,34 @@ def apply_custom_css():
 
 def sidebar_credentials():
     """Handle Gmail credentials in sidebar."""
-    st.sidebar.title(" Configuration")
+    st.sidebar.title("⚙️ Configuration")
+    
+    # NEW: Auto-load credentials on first run
+    email_auth.load_saved_credentials()
     
     # Gmail Auth Section
-    with st.sidebar.expander(" Gmail Credentials", expanded=True):
+    with st.sidebar.expander("📧 Gmail Credentials", expanded=True):
         st.markdown("**Required for sending emails**")
         
+        # Check if credentials are loaded
+        from_email, _ = email_auth.get_credentials()
+        saved_on_disk = email_auth.credentials_are_saved_on_disk()
+        
+        # Show current email if loaded
+        if from_email:
+            st.info(f"Logged in as: **{from_email}**")
+            if saved_on_disk:
+                st.caption("✅ Credentials are saved locally")
+        
+        # Email input (pre-filled if loaded)
         email = st.text_input(
             "Gmail address",
+            value=from_email if from_email else "",
             placeholder="your.email@gmail.com",
             key="gmail_input",
         )
         
+        # App password input
         app_password = st.text_input(
             "App password",
             type="password",
@@ -82,25 +98,25 @@ def sidebar_credentials():
         col1, col2 = st.columns(2)
         
         with col1:
-            if st.button(" Save", use_container_width=True):
+            if st.button("💾 Save", use_container_width=True):
                 if email and app_password:
-                    email_auth.store_credentials(email, app_password)
-                    st.success(" Saved!")
+                    # Store with persistence
+                    email_auth.store_credentials(email, app_password, persist=True)
+                    st.success("✅ Saved locally!")
+                    st.rerun()
                 else:
-                    st.error(" Fill both fields")
+                    st.error("❌ Fill both fields")
         
         with col2:
-            if st.button(" Clear", use_container_width=True):
-                if "smtp_email" in st.session_state:
-                    del st.session_state["smtp_email"]
-                if "smtp_app_password_plain" in st.session_state:
-                    del st.session_state["smtp_app_password_plain"]
-                st.info("Credentials cleared")
+            if st.button("🗑️ Clear", use_container_width=True):
+                # Clear from memory and disk
+                email_auth.clear_credentials(delete_from_disk=True)
+                st.success("🗑️ Credentials cleared")
+                st.rerun()
         
         # Status indicator
-        from_email, _ = email_auth.get_credentials()
         if from_email:
-            st.markdown(f"**Status:** 🟢 Configured")
+            st.markdown("**Status:** 🟢 Configured")
             st.caption(f"({from_email})")
         else:
             st.markdown("**Status:** 🔴 Not configured")

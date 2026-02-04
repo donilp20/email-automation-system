@@ -1,3 +1,5 @@
+# docker-compose.yml (UPDATED)
+
 version: '3.8'
 
 services:
@@ -16,7 +18,9 @@ services:
       - SMTP_HOST=smtp.gmail.com
       - SMTP_PORT=587
     volumes:
+      # NEW: Mount data directory for credential persistence
       - ./app/data:/app/app/data
+      # Mount prompts for easy editing
       - ./app/prompts:/app/app/prompts
     restart: unless-stopped
     dns:

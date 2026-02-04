@@ -22,6 +22,10 @@ ENV/
 # Docker
 docker-compose.override.yml
 
+# NEW: Stored credentials (DO NOT COMMIT)
+app/data/credentials.json
+app/data/.credentials.enc
+
 # Data files (optional - uncomment if you don't want to commit datasets)
 # app/data/*.csv
 # app/data/*.json

@@ -1,5 +1,3 @@
-# app/modules/credential_storage.py
-
 import os
 import json
 from pathlib import Path
@@ -15,28 +13,33 @@ class CredentialStorage:
     Uses Fernet symmetric encryption with a key derived from machine-specific data.
     """
     
-    def __init__(self, storage_dir: str = "app/data"):
+    def __init__(self, storage_dir: str = None):
+        # Determine storage directory
+        if storage_dir is None:
+            # Try to use app/data relative to the current working directory
+            storage_dir = os.path.join(os.getcwd(), "app", "data")
+        
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
         self.credentials_file = self.storage_dir / ".credentials.enc"
+        
+        print(f"📁 Credential storage path: {self.credentials_file}")
+        
         self.cipher = self._get_cipher()
     
     def _generate_machine_key(self) -> bytes:
         """
         Generate a machine-specific encryption key.
-        This uses a combination of hostname and a fixed salt.
+        This uses a fixed salt for deterministic key generation.
         
-        Note: This is not ultra-secure but good enough for local storage.
-        For production, consider using keyring or proper secret management.
+        Note: For production, consider using keyring or proper secret management.
         """
-        import socket
+        # Use a fixed salt instead of hostname to ensure consistency
+        # even when container hostname changes
+        salt = "email-automation-v1-deterministic-key"
         
-        # Use hostname + fixed salt for deterministic key
-        hostname = socket.gethostname()
-        salt = "email-automation-v1-salt"  # Change this to something unique
-        
-        # Derive key from hostname + salt
-        key_material = f"{hostname}:{salt}".encode()
+        # Derive key from salt
+        key_material = salt.encode()
         key_hash = hashlib.sha256(key_material).digest()
         
         # Fernet requires base64-encoded 32-byte key
@@ -79,6 +82,8 @@ class CredentialStorage:
             
         except Exception as e:
             print(f"❌ Failed to save credentials: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def load_credentials(self) -> Tuple[Optional[str], Optional[str]]:
@@ -91,11 +96,14 @@ class CredentialStorage:
         try:
             # Check if file exists
             if not self.credentials_file.exists():
-                print("ℹ️  No saved credentials found")
+                print(f"ℹ️  No saved credentials found at {self.credentials_file}")
                 return None, None
+            
+            print(f"🔍 Loading credentials from {self.credentials_file}")
             
             # Read encrypted data
             encrypted_data = self.credentials_file.read_bytes()
+            print(f"📦 Read {len(encrypted_data)} bytes of encrypted data")
             
             # Decrypt
             decrypted_data = self.cipher.decrypt(encrypted_data)
@@ -115,6 +123,8 @@ class CredentialStorage:
                 
         except Exception as e:
             print(f"❌ Failed to load credentials: {e}")
+            import traceback
+            traceback.print_exc()
             return None, None
     
     def delete_credentials(self) -> bool:
@@ -127,19 +137,24 @@ class CredentialStorage:
         try:
             if self.credentials_file.exists():
                 self.credentials_file.unlink()
-                print("✅ Credentials deleted")
+                print(f"✅ Credentials deleted from {self.credentials_file}")
                 return True
             else:
-                print("ℹ️  No credentials to delete")
+                print(f"ℹ️  No credentials to delete at {self.credentials_file}")
                 return True
                 
         except Exception as e:
             print(f"❌ Failed to delete credentials: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def credentials_exist(self) -> bool:
         """Check if credentials file exists."""
-        return self.credentials_file.exists()
+        exists = self.credentials_file.exists()
+        # COMMENT OUT OR REMOVE THIS LINE:
+        # print(f"🔍 Credentials exist at {self.credentials_file}: {exists}")
+        return exists
 
 
 # Singleton instance

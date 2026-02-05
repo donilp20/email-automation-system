@@ -208,15 +208,12 @@ def extract_manager_name_from_email(email: str) -> str:
     except:
         return "Manager"
 
-
-# app/app.py (UPDATED MAIN FUNCTION - Replace from line ~250 onwards)
-
 def main():
     apply_custom_css()
     sidebar_credentials()
     
     # Main header
-    st.markdown('<h1 class="main-header"> Email Automation System </h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">📧 Email Automation System</h1>', unsafe_allow_html=True)
     st.markdown(
         '<p class="sub-header">Transform your work log into professional email reports, instantly.</p>',
         unsafe_allow_html=True
@@ -275,16 +272,15 @@ Today I:
 - Scheduled 3 client demos for next week""",
     }
     
-    col1, col2 = st.columns([3, 1])
+    st.markdown("### Send your emails easily")
     
-    with col1:
-        st.markdown("### Send your emails easily")
-    
-    with col2:
-        template_choice = st.selectbox(
-            "Select Template",
+    with st.expander("📋 Select Template", expanded=False):
+        template_choice = st.radio(
+            "Choose a template to get started:",
             options=["Custom"] + list(example_templates.keys()),
+            index=0,
             key="template_selector",
+            horizontal=False,
         )
     
     # Load template if selected
@@ -304,8 +300,7 @@ Today I:
     # Save to session
     st.session_state["last_prompt"] = raw_prompt
     
-    # NEW: Three action buttons
-    col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
+    col1, col2, col3 = st.columns([1, 1, 1])
     
     with col1:
         send_button = st.button(
@@ -328,13 +323,6 @@ Today I:
             use_container_width=True,
             help="Generate refined email and send to your desired email address"
         )
-    
-    # with col4:
-    #     if st.button("🗑️"):
-    #         st.session_state["last_prompt"] = ""
-    #         if "refined_report" in st.session_state:
-    #             del st.session_state["refined_report"]
-    #         st.rerun()
     
     # Validate credentials for all actions
     if send_button or refine_button or refine_and_send_button:

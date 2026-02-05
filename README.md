@@ -238,7 +238,7 @@ In the **Streamlit sidebar**:
 ### Step 2: Compose Your Work Log
 
 **Option A:** Use a template
-- Select from the **"Load example"** dropdown
+- Select from the **"Select Template"** dropdown
 - Pre-filled templates demonstrate proper formatting
 
 **Option B:** Write your own

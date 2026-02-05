@@ -13,7 +13,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-
 def apply_custom_css():
     """Apply custom styling."""
     st.markdown("""
@@ -21,7 +20,7 @@ def apply_custom_css():
         .main-header {
             font-size: 2.5rem;
             font-weight: 700;
-            color: #2c3e50;
+            color: #ffffff;
             margin-bottom: 0.5rem;
         }
         .sub-header {
@@ -52,6 +51,41 @@ def apply_custom_css():
             border-radius: 8px;
             color: #0c5460;
             margin: 1rem 0;
+        }
+        
+        /* Selectbox cursor */
+        div[data-baseweb="select"] {
+            cursor: pointer !important;
+        }
+        
+        div[data-baseweb="select"] > div {
+            cursor: pointer !important;
+        }
+        
+        /* Dropdown items cursor */
+        div[data-baseweb="popover"] li {
+            cursor: pointer !important;
+        }
+        
+        /* Select input cursor */
+        .stSelectbox > div > div {
+            cursor: pointer !important;
+        }
+        
+        /* Arrow rotation animation - Match expander style */
+        div[data-baseweb="select"] svg {
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
+        }
+        
+        /* Rotate arrow when dropdown is open - smooth like expander */
+        div[data-baseweb="select"][aria-expanded="true"] svg {
+            transform: rotate(180deg);
+        }
+        
+        /* Keep arrow normal when closed */
+        div[data-baseweb="select"][aria-expanded="false"] svg {
+            transform: rotate(0deg);
         }
     </style>
     """, unsafe_allow_html=True)
@@ -98,7 +132,7 @@ def sidebar_credentials():
         col1, col2 = st.columns(2)
         
         with col1:
-            if st.button("💾 Save", use_container_width=True):
+            if st.button(" Save", use_container_width=True):
                 if email and app_password:
                     # Store with persistence
                     email_auth.store_credentials(email, app_password, persist=True)
@@ -108,10 +142,10 @@ def sidebar_credentials():
                     st.error("❌ Fill both fields")
         
         with col2:
-            if st.button("🗑️ Clear", use_container_width=True):
+            if st.button(" Remove", use_container_width=True):
                 # Clear from memory and disk
                 email_auth.clear_credentials(delete_from_disk=True)
-                st.success("🗑️ Credentials cleared")
+                st.success(" Credentials cleared")
                 st.rerun()
         
         # Status indicator
@@ -132,7 +166,7 @@ def sidebar_credentials():
         
         sender_name = st.text_input(
             "Sender name",
-            value="Task Automation System",
+            value="Donil",
             key="sender_name",
         )
         
@@ -175,19 +209,21 @@ def extract_manager_name_from_email(email: str) -> str:
         return "Manager"
 
 
+# app/app.py (UPDATED MAIN FUNCTION - Replace from line ~250 onwards)
+
 def main():
     apply_custom_css()
     sidebar_credentials()
     
     # Main header
-    st.markdown('<h1 class="main-header">Email Automation System</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header"> Email Automation System </h1>', unsafe_allow_html=True)
     st.markdown(
         '<p class="sub-header">Transform your work log into professional email reports, instantly.</p>',
         unsafe_allow_html=True
     )
     
     # Instructions
-    with st.expander(" How to use", expanded=False):
+    with st.expander("📖 How to use", expanded=False):
         st.markdown("""
         **Step 1:** Configure Gmail credentials in the sidebar (one-time setup)
         
@@ -196,10 +232,10 @@ def main():
         - List your completed tasks
         - Use any format: bullets, numbers, or plain text
         
-        **Step 3:** Click "Generate & Send" - the AI will:
-        - Extract recipient and tasks
-        - Generate a professional email
-        - Send it via Gmail
+        **Step 3:** Choose an action:
+        - **Send**: Send your work log as-is (no AI refinement)
+        - **Refine**: Preview AI-polished version before sending
+        - **Refine & Send**: Generate and send immediately
         
         **Example:**
         ```
@@ -242,11 +278,11 @@ Today I:
     col1, col2 = st.columns([3, 1])
     
     with col1:
-        st.markdown("###  Your Work Log")
+        st.markdown("### Send your emails easily")
     
     with col2:
         template_choice = st.selectbox(
-            "Email Type",
+            "Select Template",
             options=["Custom"] + list(example_templates.keys()),
             key="template_selector",
         )
@@ -268,209 +304,474 @@ Today I:
     # Save to session
     st.session_state["last_prompt"] = raw_prompt
     
-    col1, col2, col3 = st.columns([2, 2, 1])
+    # NEW: Three action buttons
+    col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
     
     with col1:
-        generate_and_send = st.button(
-            "Generate & Send",
-            type="primary",
+        send_button = st.button(
+            "📤 Send",
             use_container_width=True,
+            help="Send your work log without refinement"
         )
     
     with col2:
-        preview_only = st.button(
-            "Preview Only",
+        refine_button = st.button(
+            "✨ Refine",
             use_container_width=True,
+            help="Preview polished version before sending"
         )
     
     with col3:
-        if st.button("🗑️"):
-            st.session_state["last_prompt"] = ""
-            st.rerun()
+        refine_and_send_button = st.button(
+            "🚀 Refine & Send",
+            type="primary",
+            use_container_width=True,
+            help="Generate refined email and send to your desired email address"
+        )
     
-    if generate_and_send or preview_only:
-        # Validate credentials if sending
-        if generate_and_send:
-            from_email, app_password = email_auth.get_credentials()
-            if not from_email or not app_password:
-                st.error(" Please configure Gmail credentials in the sidebar first.")
-                st.stop()
-        
-        if not raw_prompt.strip():
-            st.error(" Please enter your work log.")
+    # with col4:
+    #     if st.button("🗑️"):
+    #         st.session_state["last_prompt"] = ""
+    #         if "refined_report" in st.session_state:
+    #             del st.session_state["refined_report"]
+    #         st.rerun()
+    
+    # Validate credentials for all actions
+    if send_button or refine_button or refine_and_send_button:
+        from_email, app_password = email_auth.get_credentials()
+        # FIX THIS LINE:
+        if not from_email or not app_password:  # ✅ Added 'not' before app_password
+            st.error("❌ Please configure Gmail credentials in the sidebar first.")
             st.stop()
         
-        with st.spinner(" Processing your work log..."):
-            # Parse prompt
-            recipient_email, tasks = prompt_parser.parse_prompt(raw_prompt)
-            
-            # Validation
-            if not recipient_email:
-                st.error(" Could not extract recipient email. Please include it like: 'Send to: email@example.com'")
-                st.stop()
-            
-            if not tasks:
-                st.error(" Could not extract any tasks. Please list your completed work.")
-                st.stop()
-            
-            # Get settings
-            tone = st.session_state.get("email_tone", "formal")
-            sender_name = st.session_state.get("sender_name", "Task Automation System")
-            manager_name_override = st.session_state.get("manager_name_override", "")
-            
-            # Determine manager name
-            if manager_name_override:
-                manager_name = manager_name_override
-            else:
-                manager_name = extract_manager_name_from_email(recipient_email)
-            
-            # Generate report
-            generator = report_generator.get_report_generator()
-            report = generator.generate_report(
-                recipient_email=recipient_email,
-                tasks=tasks,
-                manager_name=manager_name,
-                tone=tone,
-                sender_name=sender_name,
-            )
+        if not raw_prompt.strip():
+            st.error("❌ Please enter your work log.")
+            st.stop()
+    
+    # BUTTON 1: Send as-is (no AI processing)
+    if send_button:
+        handle_send_as_is(raw_prompt)
+    
+    # BUTTON 2: Refine (show preview with options)
+    elif refine_button:
+        handle_refine(raw_prompt)
+    
+    # BUTTON 3: Refine & Send (existing behavior)
+    elif refine_and_send_button:
+        handle_refine_and_send(raw_prompt)
+    
+    # Show refined preview and action buttons if in refine mode
+    if "refined_report" in st.session_state:
+        show_refined_preview()
+
+
+def handle_send_as_is(raw_prompt: str):
+    """Handle 'Send' button - send work log as-is without AI refinement."""
+
+    from_email, app_password = email_auth.get_credentials()
+    if not from_email or not app_password:  # ✅ FIXED
+        st.error("❌ Please configure Gmail credentials in the sidebar first.")
+        st.stop()
+    
+    with st.spinner("📋 Processing your work log..."):
+        # Parse prompt
+        recipient_email, tasks = prompt_parser.parse_prompt(raw_prompt)
         
-        # Display preview
-        st.markdown("---")
-        st.markdown("### Email Preview")
+        # Validation
+        if not recipient_email:
+            st.error("❌ Could not extract recipient email. Please include it like: 'Send to: email@example.com'")
+            st.stop()
         
-        col1, col2 = st.columns([1, 3])
-        with col1:
-            st.markdown("**To:**")
-            st.markdown("**Subject:**")
-            st.markdown("**Tasks Found:**")
-            st.markdown("**Generated By:**")
+        if not tasks:
+            st.error("❌ Could not extract any tasks. Please list your completed work.")
+            st.stop()
         
-        with col2:
-            st.markdown(f"`{recipient_email}`")
-            st.markdown(f"`{report.subject}`")
-            st.markdown(f"`{len(tasks)} tasks`")
-            method = report.metadata.get("generation_method", "unknown") if report.metadata else "unknown"
-            st.markdown(f"`{method}`")
+        # Get settings
+        sender_name = st.session_state.get("sender_name", "Task Automation System")
         
-        # HTML Preview
-        with st.expander(" View Email Content", expanded=True):
-            st.components.v1.html(report.body_html, height=600, scrolling=True)
+        # Create simple plain text email
+        from datetime import date
+        date_str = date.today().strftime("%B %d, %Y")
         
-        # Send email immediately
-        if generate_and_send:
-            st.markdown("---")
-            st.markdown("###  Sending Email...")
-            
-            try:
-                from_email, app_password = email_auth.get_credentials()
-                
-                # Show sending progress
-                progress_bar = st.progress(0)
-                status_text = st.empty()
-                
-                # Step 1: Prepare
-                status_text.text(" Preparing email...")
-                progress_bar.progress(25)
-                time.sleep(0.3)
-                
-                # Step 2: Authenticate
-                status_text.text(" Authenticating with Gmail...")
-                progress_bar.progress(50)
-                time.sleep(0.3)
-                
-                # Step 3: Send
-                status_text.text(" Sending email...")
-                progress_bar.progress(75)
-                
-                # Actually send the email
-                email_sender.send_email(
-                    from_email=from_email,
-                    app_password=app_password,
-                    to_email=recipient_email,
-                    subject=report.subject,
-                    html_body=report.body_html,
-                )
-                
-                # Step 4: Complete
-                progress_bar.progress(100)
-                status_text.text(" Email sent successfully!")
-                
-                # Success!
-                st.success(f" **Email sent successfully to {recipient_email}!**")
-                st.balloons()
-                
-                # Wait and reset
-                time.sleep(2)
-                st.session_state["last_prompt"] = ""
-                st.info(" Resetting form...")
-                time.sleep(1)
-                st.rerun()
-            
-            except Exception as e:
-                st.error(" **Failed to send email**")
-                
-                # Show detailed error
-                error_msg = str(e)
-                st.error(f"**Error:** {error_msg}")
-                
-                # Provide troubleshooting based on error type
-                if "Authentication" in error_msg or "535" in error_msg:
-                    st.warning("""
-                    **Authentication Issue Detected**
-                    
-                    This usually means your app password is incorrect or expired.
-                    
-                    **Quick Fix:**
-                    1. Go to https://myaccount.google.com/apppasswords
-                    2. Delete the old "Task Automation" password
-                    3. Create a new app password
-                    4. Copy it and update in the sidebar
-                    5. Click Save and try again
-                    """)
-                elif "Connection" in error_msg or "timed out" in error_msg or "refused" in error_msg:
-                    st.warning("""
-                    **Network Connection Issue**
-                    
-                    - Check your internet connection
-                    - Verify Docker can access the internet
-                    - Make sure no firewall is blocking port 587
-                    - Try restarting Docker Desktop (on Mac)
-                    """)
-                else:
-                    with st.expander(" Full Troubleshooting Guide"):
-                        st.markdown(f"""
-                        ### Common Gmail SMTP Issues:
-                        
-                        **1. Invalid App Password (Error 535)**
-                        - Generate new app password: https://myaccount.google.com/apppasswords
-                        - Make sure 2FA is enabled first
-                        - Copy the 16-character password exactly (no spaces)
-                        
-                        **2. Wrong Email Address**
-                        - Verify the "from" email matches your Gmail exactly
-                        - Check for typos in the sidebar
-                        
-                        **3. Gmail Security Blocking**
-                        - Check your Gmail security settings
-                        - Look for "suspicious sign-in" alerts
-                        - Approve the sign-in if prompted
-                        
-                        **4. Network/Firewall Issues**
-                        - Ensure port 587 is not blocked
-                        - Try disabling VPN temporarily
-                        - Check Docker network settings
-                        
-                        **Current Configuration:**
-                        - From: {from_email}
-                        - To: {recipient_email}
-                        - SMTP: smtp.gmail.com:587
-                        
-                        **Full Error:**
-                        ```
-                        {error_msg}
-                        ```
-                        """)
+        subject = f"Daily Task Report - {date_str}"
+        
+        # Create plain text body
+        text_body = f"""Hello,
+
+Here is my work log for {date_str}:
+
+"""
+        for i, task in enumerate(tasks, 1):
+            text_body += f"{i}. {task}\n"
+        
+        text_body += f"""
+
+Best regards,
+{sender_name}
+
+---
+This report was sent via Task Automation System.
+"""
+        
+        # Create simple HTML version
+        task_items = "\n".join(f"<li>{task}</li>" for task in tasks)
+        html_body = f"""<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <p>Hello,</p>
+    
+    <p>Here is my work log for <strong>{date_str}</strong>:</p>
+    
+    <ol>
+        {task_items}
+    </ol>
+    
+    <p>Best regards,<br>
+    <strong>{sender_name}</strong></p>
+    
+    <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+    <p style="font-size: 0.9em; color: #666;">
+        <em>This report was sent via Task Automation System.</em>
+    </p>
+</body>
+</html>"""
+    
+    # Show preview
+    st.markdown("---")
+    st.markdown("### 📬 Sending Email")
+    
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        st.markdown("**To:**")
+        st.markdown("**Subject:**")
+        st.markdown("**Tasks:**")
+        st.markdown("**Type:**")
+    
+    with col2:
+        st.markdown(f"`{recipient_email}`")
+        st.markdown(f"`{subject}`")
+        st.markdown(f"`{len(tasks)} tasks`")
+        st.markdown(f"`Plain (no AI refinement)`")
+    
+    # Send email
+    try:
+        from_email, app_password = email_auth.get_credentials()
+        
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        status_text.text("📝 Preparing email...")
+        progress_bar.progress(25)
+        time.sleep(0.3)
+        
+        status_text.text("🔐 Authenticating with Gmail...")
+        progress_bar.progress(50)
+        time.sleep(0.3)
+        
+        status_text.text("📧 Sending email...")
+        progress_bar.progress(75)
+        
+        email_sender.send_email(
+            from_email=from_email,
+            app_password=app_password,
+            to_email=recipient_email,
+            subject=subject,
+            html_body=html_body,
+            text_body=text_body,
+        )
+        
+        progress_bar.progress(100)
+        status_text.text("✅ Email sent successfully!")
+        
+        st.success(f"✅ **Email sent successfully to {recipient_email}!**")
+        st.balloons()
+        
+        time.sleep(2)
+        st.session_state["last_prompt"] = ""
+        st.info("🔄 Resetting form...")
+        time.sleep(1)
+        st.rerun()
+    
+    except Exception as e:
+        st.error("❌ **Failed to send email**")
+        st.error(f"**Error:** {str(e)}")
+
+
+def handle_refine(raw_prompt: str):
+    """Handle 'Refine' button - generate AI-refined email and show preview."""
+
+    from_email, app_password = email_auth.get_credentials()
+    if not from_email or not app_password:  # ✅ FIXED
+        st.error("❌ Please configure Gmail credentials in the sidebar first.")
+        st.stop()
+    
+    with st.spinner("🤖 Refining your work log with AI..."):
+        # Parse prompt
+        recipient_email, tasks = prompt_parser.parse_prompt(raw_prompt)
+        
+        # Validation
+        if not recipient_email:
+            st.error("❌ Could not extract recipient email. Please include it like: 'Send to: email@example.com'")
+            st.stop()
+        
+        if not tasks:
+            st.error("❌ Could not extract any tasks. Please list your completed work.")
+            st.stop()
+        
+        # Get settings
+        tone = st.session_state.get("email_tone", "formal")
+        sender_name = st.session_state.get("sender_name", "Task Automation System")
+        manager_name_override = st.session_state.get("manager_name_override", "")
+        
+        # Determine manager name
+        if manager_name_override:
+            manager_name = manager_name_override
+        else:
+            manager_name = extract_manager_name_from_email(recipient_email)
+        
+        # Generate report
+        generator = report_generator.get_report_generator()
+        report = generator.generate_report(
+            recipient_email=recipient_email,
+            tasks=tasks,
+            manager_name=manager_name,
+            tone=tone,
+            sender_name=sender_name,
+        )
+        
+        # Store in session state for later use
+        st.session_state["refined_report"] = report
+        st.session_state["refined_recipient"] = recipient_email
+        st.session_state["refined_tasks"] = tasks
+    
+    # Force rerun to show the preview section
+    st.rerun()
+
+
+def handle_refine_and_send(raw_prompt: str):
+    """Handle 'Refine & Send' button - existing generate and send behavior."""
+
+    from_email, app_password = email_auth.get_credentials()
+    if not from_email or not app_password:  # ✅ FIXED
+        st.error("❌ Please configure Gmail credentials in the sidebar first.")
+        st.stop()
+    
+    with st.spinner("🤖 Processing your work log..."):
+        # Parse prompt
+        recipient_email, tasks = prompt_parser.parse_prompt(raw_prompt)
+        
+        # Validation
+        if not recipient_email:
+            st.error("❌ Could not extract recipient email. Please include it like: 'Send to: email@example.com'")
+            st.stop()
+        
+        if not tasks:
+            st.error("❌ Could not extract any tasks. Please list your completed work.")
+            st.stop()
+        
+        # Get settings
+        tone = st.session_state.get("email_tone", "formal")
+        sender_name = st.session_state.get("sender_name", "Task Automation System")
+        manager_name_override = st.session_state.get("manager_name_override", "")
+        
+        # Determine manager name
+        if manager_name_override:
+            manager_name = manager_name_override
+        else:
+            manager_name = extract_manager_name_from_email(recipient_email)
+        
+        # Generate report
+        generator = report_generator.get_report_generator()
+        report = generator.generate_report(
+            recipient_email=recipient_email,
+            tasks=tasks,
+            manager_name=manager_name,
+            tone=tone,
+            sender_name=sender_name,
+        )
+    
+    # Show preview
+    st.markdown("---")
+    st.markdown("### 📬 Email Preview")
+    
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        st.markdown("**To:**")
+        st.markdown("**Subject:**")
+        st.markdown("**Tasks Found:**")
+        st.markdown("**Generated By:**")
+    
+    with col2:
+        st.markdown(f"`{recipient_email}`")
+        st.markdown(f"`{report.subject}`")
+        st.markdown(f"`{len(tasks)} tasks`")
+        method = report.metadata.get("generation_method", "unknown") if report.metadata else "unknown"
+        st.markdown(f"`{method}`")
+    
+    # HTML Preview
+    with st.expander("📧 View Email Content", expanded=True):
+        st.components.v1.html(report.body_html, height=600, scrolling=True)
+    
+    # Send email immediately
+    st.markdown("---")
+    st.markdown("### 📤 Sending Email...")
+    
+    try:
+        from_email, app_password = email_auth.get_credentials()
+        
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        status_text.text("📝 Preparing email...")
+        progress_bar.progress(25)
+        time.sleep(0.3)
+        
+        status_text.text("🔐 Authenticating with Gmail...")
+        progress_bar.progress(50)
+        time.sleep(0.3)
+        
+        status_text.text("📧 Sending email...")
+        progress_bar.progress(75)
+        
+        email_sender.send_email(
+            from_email=from_email,
+            app_password=app_password,
+            to_email=recipient_email,
+            subject=report.subject,
+            html_body=report.body_html,
+        )
+        
+        progress_bar.progress(100)
+        status_text.text("✅ Email sent successfully!")
+        
+        st.success(f"✅ **Email sent successfully to {recipient_email}!**")
+        st.balloons()
+        
+        time.sleep(2)
+        st.session_state["last_prompt"] = ""
+        st.info("🔄 Resetting form...")
+        time.sleep(1)
+        st.rerun()
+    
+    except Exception as e:
+        st.error("❌ **Failed to send email**")
+        st.error(f"**Error:** {str(e)}")
+
+
+def show_refined_preview():
+    """Show refined email preview with 'Refine Again' and 'Send' buttons."""
+    
+    report = st.session_state.get("refined_report")
+    recipient_email = st.session_state.get("refined_recipient")
+    tasks = st.session_state.get("refined_tasks")
+    
+    if not report:
+        return
+    
+    st.markdown("---")
+    st.markdown("### ✨ Refined Email Preview")
+    
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        st.markdown("**To:**")
+        st.markdown("**Subject:**")
+        st.markdown("**Tasks Found:**")
+        st.markdown("**Generated By:**")
+    
+    with col2:
+        st.markdown(f"`{recipient_email}`")
+        st.markdown(f"`{report.subject}`")
+        st.markdown(f"`{len(tasks)} tasks`")
+        method = report.metadata.get("generation_method", "unknown") if report.metadata else "unknown"
+        st.markdown(f"`{method}`")
+    
+    # HTML Preview
+    with st.expander("📧 View Email Content", expanded=True):
+        st.components.v1.html(report.body_html, height=600, scrolling=True)
+    
+    # Action buttons after preview
+    st.markdown("### Choose Action")
+    
+    col1, col2, col3 = st.columns([2, 2, 1])
+    
+    with col1:
+        if st.button("🔄 Refine Again", use_container_width=True, key="refine_again_btn"):
+            # Clear the refined report and trigger new refinement
+            raw_prompt = st.session_state.get("last_prompt", "")
+            del st.session_state["refined_report"]
+            handle_refine(raw_prompt)
+    
+    with col2:
+        if st.button("📤 Send", type="primary", use_container_width=True, key="send_refined_btn"):
+            # Send the refined email
+            send_refined_email(report, recipient_email)
+    
+    with col3:
+        if st.button("❌ Cancel", use_container_width=True, key="cancel_refined_btn"):
+            del st.session_state["refined_report"]
+            del st.session_state["refined_recipient"]
+            del st.session_state["refined_tasks"]
+            st.rerun()
+
+
+def send_refined_email(report, recipient_email: str):
+    """Send the refined email that's currently in preview."""
+    
+    st.markdown("---")
+    st.markdown("### 📤 Sending Refined Email...")
+    
+    try:
+        from_email, app_password = email_auth.get_credentials()
+        
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        status_text.text("📝 Preparing email...")
+        progress_bar.progress(25)
+        time.sleep(0.3)
+        
+        status_text.text("🔐 Authenticating with Gmail...")
+        progress_bar.progress(50)
+        time.sleep(0.3)
+        
+        status_text.text("📧 Sending email...")
+        progress_bar.progress(75)
+        
+        email_sender.send_email(
+            from_email=from_email,
+            app_password=app_password,
+            to_email=recipient_email,
+            subject=report.subject,
+            html_body=report.body_html,
+        )
+        
+        progress_bar.progress(100)
+        status_text.text("✅ Email sent successfully!")
+        
+        st.success(f"✅ **Email sent successfully to {recipient_email}!**")
+        st.balloons()
+        
+        # Clear session state
+        time.sleep(2)
+        st.session_state["last_prompt"] = ""
+        if "refined_report" in st.session_state:
+            del st.session_state["refined_report"]
+        if "refined_recipient" in st.session_state:
+            del st.session_state["refined_recipient"]
+        if "refined_tasks" in st.session_state:
+            del st.session_state["refined_tasks"]
+        
+        st.info("🔄 Resetting form...")
+        time.sleep(1)
+        st.rerun()
+    
+    except Exception as e:
+        st.error("❌ **Failed to send email**")
+        st.error(f"**Error:** {str(e)}")
 
 
 if __name__ == "__main__":
     main()
+

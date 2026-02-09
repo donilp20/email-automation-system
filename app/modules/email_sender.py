@@ -16,69 +16,65 @@ def send_email(
     to_email: str,
     subject: str,
     html_body: str,
-    text_body: Optional[str] = None,
+    text_body: str = None,
+    cc_emails: str = "",
+    bcc_emails: str = "",
 ):
-    """Send email via Gmail SMTP with detailed logging."""
+    """
+    Send an email via Gmail SMTP with optional CC and BCC.
     
-    print("=" * 60)
-    print(" EMAIL SENDING STARTED")
-    print("=" * 60)
-    print(f"From: {from_email}")
-    print(f"To: {to_email}")
-    print(f"Subject: {subject}")
-    print(f"SMTP Host: {SMTP_HOST}")
-    print(f"SMTP Port: {SMTP_PORT}")
-    print(f"App Password Length: {len(app_password)}")
-    print("=" * 60)
+    Args:
+        from_email: Sender's Gmail address
+        app_password: Gmail app password
+        to_email: Recipient's email address
+        subject: Email subject
+        html_body: HTML version of email body
+        text_body: Plain text version (optional)
+        cc_emails: Comma-separated CC emails (optional)
+        bcc_emails: Comma-separated BCC emails (optional)
+    """
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
     
-    if text_body is None:
-        text_body = "Your client does not support HTML. Please view this email in an HTML-capable client."
-
     # Create message
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
     msg["From"] = from_email
     msg["To"] = to_email
-
-    part1 = MIMEText(text_body, "plain")
+    msg["Subject"] = subject
+    
+    # ✅ Add CC if provided
+    if cc_emails and cc_emails.strip():
+        msg["Cc"] = cc_emails.strip()
+    
+    # Note: BCC is NOT added to headers (that's the point of BCC)
+    
+    # Attach plain text version (fallback)
+    if text_body:
+        part1 = MIMEText(text_body, "plain")
+        msg.attach(part1)
+    
+    # Attach HTML version
     part2 = MIMEText(html_body, "html")
-
-    msg.attach(part1)
     msg.attach(part2)
-
-    # Create SSL context
-    context = ssl.create_default_context()
     
+    # ✅ Parse all recipients (TO + CC + BCC)
+    all_recipients = [to_email]
+    
+    if cc_emails and cc_emails.strip():
+        cc_list = [email.strip() for email in cc_emails.split(",") if email.strip()]
+        all_recipients.extend(cc_list)
+    
+    if bcc_emails and bcc_emails.strip():
+        bcc_list = [email.strip() for email in bcc_emails.split(",") if email.strip()]
+        all_recipients.extend(bcc_list)
+    
+    # Send email via Gmail SMTP
     try:
-        print("Step 1: Connecting to SMTP server...")
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as server:
-            print(" Connected to SMTP server")
-            
-            print("Step 2: Starting TLS...")
-            server.starttls(context=context)
-            print(" TLS started")
-            
-            print("Step 3: Logging in...")
-            server.login(from_email, app_password)
-            print(" Login successful")
-            
-            print("Step 4: Sending message...")
-            server.sendmail(from_email, [to_email], msg.as_string())
-            print(" Message sent successfully!")
-        
-        print("=" * 60)
-        print(" EMAIL SENT SUCCESSFULLY")
-        print("=" * 60)
-        return True
-        
-    except smtplib.SMTPAuthenticationError as e:
-        print(f" Authentication Error: {e}")
-        raise Exception(f"Authentication failed: {e}")
-    
-    except smtplib.SMTPException as e:
-        print(f" SMTP Error: {e}")
-        raise Exception(f"SMTP error: {e}")
-    
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(from_email, app_password)
+        server.sendmail(from_email, all_recipients, msg.as_string())  # ✅ Send to all
+        server.quit()
     except Exception as e:
-        print(f" Unexpected Error: {e}")
-        raise Exception(f"Failed to send email: {e}")
+        raise Exception(f"Failed to send email: {str(e)}")

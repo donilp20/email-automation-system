@@ -6,7 +6,6 @@ EMAIL_REGEX = re.compile(
     r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)"
 )
 
-
 def extract_recipient_email(raw_prompt: str) -> str | None:
     """
     Extract the first email address from the prompt.
@@ -123,6 +122,36 @@ def extract_task_lines(raw_prompt: str) -> List[str]:
             stripped = line.strip()
             if len(stripped) > 10:
                 tasks.append(stripped)
+    
+    return tasks
+
+def extract_tasks(text: str) -> list:
+    """
+    Extract tasks from raw text without requiring 'Send to:' line.
+    
+    Args:
+        text: Raw work log text
+        
+    Returns:
+        List of extracted tasks
+    """
+    lines = text.strip().split("\n")
+    tasks = []
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        
+        # Skip headers/labels
+        if line.lower().startswith(("today", "completed", "tasks:", "work log")):
+            continue
+        
+        # Remove bullet points, numbers, etc.
+        cleaned = line.lstrip("•-*#123456789.") .strip()
+        
+        if cleaned:
+            tasks.append(cleaned)
     
     return tasks
 

@@ -12,6 +12,8 @@ DEFAULT_PREFERENCES = {
     "cc_emails": "",
     "bcc_emails": "",
     "subject_prefix": "",
+    "default_recipient": "",  # ✅ NEW
+    "default_subject": "",     # ✅ NEW
 }
 
 

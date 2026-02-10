@@ -94,177 +94,151 @@ def apply_custom_css():
 
 def sidebar_credentials():
     """Handle Gmail credentials and user preferences in sidebar."""
-    st.sidebar.title("⚙️ Configuration")
+    st.sidebar.title("Configuration")
     
-    # Auto-load credentials on first run
+    # Auto-load credentials
     email_auth.load_saved_credentials()
     
-    # ✅ NEW: Auto-load preferences
+    # Auto-load preferences
     from modules import preferences
     if "preferences_loaded" not in st.session_state:
         saved_prefs = preferences.load_preferences()
         st.session_state["email_tone"] = saved_prefs["email_tone"]
-        st.session_state["sender_name"] = saved_prefs["sender_name"]
-        st.session_state["cc_emails"] = saved_prefs["cc_emails"]
-        st.session_state["bcc_emails"] = saved_prefs["bcc_emails"]
-        st.session_state["subject_prefix"] = saved_prefs["subject_prefix"]
         st.session_state["preferences_loaded"] = True
     
     # Gmail Auth Section
-    with st.sidebar.expander("📧 Gmail Credentials", expanded=True):
+    with st.sidebar.expander("Gmail Credentials", expanded=True):
         st.markdown("**Required for sending emails**")
         
         # Check if credentials are loaded
         from_email, _ = email_auth.get_credentials()
         saved_on_disk = email_auth.credentials_are_saved_on_disk()
         
-        # Show current email if loaded
         if from_email:
-            st.info(f"Logged in as: **{from_email}**")
-            if saved_on_disk:
-                st.caption("✅ Credentials are saved locally")
-        
-        # Email input (pre-filled if loaded)
-        email = st.text_input(
-            "Gmail address",
-            value=from_email if from_email else "",
-            placeholder="your.email@gmail.com",
-            key="gmail_input",
-        )
-        
-        # App password input
-        app_password = st.text_input(
-            "App password",
-            type="password",
-            placeholder="16-character app password",
-            key="app_password_input",
-            help="Generate at: https://myaccount.google.com/apppasswords",
-        )
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            if st.button("💾 Save", use_container_width=True):
-                if email and app_password:
-                    # Store with persistence
-                    email_auth.store_credentials(email, app_password, persist=True)
-                    st.success("✅ Saved locally!")
-                    st.rerun()
-                else:
-                    st.error("❌ Fill both fields")
-        
-        with col2:
-            if st.button("🗑️ Remove", use_container_width=True):
-                # Clear from memory and disk
+            st.success(f"**Logged in as:**\n\n`{from_email}`")
+            
+            # Logout
+            if st.button("Logout", use_container_width=True, type="primary"):
                 email_auth.clear_credentials(delete_from_disk=True)
-                st.success("🔄 Credentials cleared")
+                st.success("Logged out successfully!")
+                time.sleep(1)
                 st.rerun()
         
-        # Status indicator
-        if from_email:
-            st.markdown("**Status:** 🟢 Configured")
-            st.caption(f"({from_email})")
         else:
-            st.markdown("**Status:** 🔴 Not configured")
+            st.info("Please enter your Gmail credentials to send emails")
+            
+            # Email input
+            email = st.text_input(
+                "Gmail address",
+                placeholder="your.email@gmail.com",
+                key="gmail_input",
+            )
+            
+            # App password input
+            app_password = st.text_input(
+                "App password",
+                type="password",
+                placeholder="16-character app password",
+                key="app_password_input",
+                help="Generate at: https://myaccount.google.com/apppasswords",
+            )
+            
+            # Login
+            if st.button("Login", use_container_width=True, type="primary"):
+                if email and app_password:
+                    with st.spinner("🔐 Validating credentials with Gmail..."):
+                        is_valid, message = email_auth.validate_credentials(email, app_password)
+                    
+                    if is_valid:
+                        # Credentials are valid
+                        email_auth.store_credentials(email, app_password, persist=True)
+                        st.success(message)
+                        st.success("Logged in successfully!")
+                        time.sleep(2)
+                        st.rerun()
+                    else:
+                        st.error(message)
+                        st.info("**How to fix:**\n"
+                               "1. Go to: https://myaccount.google.com/apppasswords\n"
+                               "2. Enable 2-Step Verification if not already\n"
+                               "3. Generate a new App Password\n"
+                               "4. Copy the 16-character code and try again")
+                else:
+                    st.error("Please fill both fields")
     
-    # ✅ Email Settings (now only has sender name, CC, BCC, subject prefix, manager name)
-    with st.sidebar.expander("⚙️ Email Settings", expanded=False):
-        # Field 1: Sender Name
+    # Preferences Section
+    with st.sidebar.expander("Preferences", expanded=False):
+        saved_prefs = preferences.load_preferences()
+        
+        # Sender Name
         sender_name = st.text_input(
             "Sender name",
-            value=st.session_state.get("sender_name", "Donil"),
+            value=saved_prefs.get("sender_name", "Donil"),
             key="sender_name",
         )
         
-        # Field 2: CC Emails
-        cc_emails = st.text_input(
-            "CC emails (optional)",
-            value=st.session_state.get("cc_emails", ""),
-            placeholder="email1@example.com, email2@example.com",
-            help="Separate multiple emails with commas",
-            key="cc_emails",
+        # Default Recipient
+        default_recipient = st.text_input(
+            "Default recipient email",
+            value=saved_prefs.get("default_recipient", ""),
+            placeholder="manager@company.com",
+            help="Your usual recipient (auto-fills the recipient field)",
+            key="default_recipient",
         )
         
-        # Field 3: BCC Emails
-        bcc_emails = st.text_input(
-            "BCC emails (optional)",
-            value=st.session_state.get("bcc_emails", ""),
-            placeholder="email1@example.com, email2@example.com",
-            help="Separate multiple emails with commas",
-            key="bcc_emails",
+        # Default Subject
+        default_subject = st.text_input(
+            "Default subject",
+            value=saved_prefs.get("default_subject", ""),
+            placeholder="Daily Task Report",
+            help="Your usual subject line (auto-fills the subject field)",
+            key="default_subject",
         )
-        
-        # Field 4: Subject Prefix
-        subject_prefix = st.text_input(
-            "Subject prefix (optional)",
-            value=st.session_state.get("subject_prefix", ""),
-            placeholder="[DAILY REPORT]",
-            help="Prefix to add before email subject",
-            key="subject_prefix",
-        )
-        
-        st.markdown("---")
-        
-        # Manager name override (keep existing)
-        manager_name = st.text_input(
-            "Manager name (optional)",
-            placeholder="Auto-detected or use 'Manager'",
-            key="manager_name_override",
-        )
-        
-        st.markdown("---")
         
         # Save Preferences Button
         col1, col2 = st.columns(2)
         
         with col1:
-            if st.button("💾 Save Settings", use_container_width=True):
+            if st.button("Save Preferences", use_container_width=True):
                 prefs_to_save = {
                     "email_tone": st.session_state.get("email_tone", "formal"),
                     "sender_name": st.session_state.get("sender_name", "Donil"),
                     "cc_emails": st.session_state.get("cc_emails", ""),
                     "bcc_emails": st.session_state.get("bcc_emails", ""),
                     "subject_prefix": st.session_state.get("subject_prefix", ""),
+                    "default_recipient": st.session_state.get("default_recipient", ""),
+                    "default_subject": st.session_state.get("default_subject", ""),
                 }
                 
                 if preferences.save_preferences(prefs_to_save):
-                    st.success("✅ Settings saved!")
+                    st.success("Preferences saved!")
                 else:
-                    st.error("❌ Failed to save settings")
+                    st.error("Failed to save preferences")
         
         with col2:
-            if st.button("🗑️ Clear", use_container_width=True):
+            if st.button("Clear", use_container_width=True):
                 if preferences.clear_preferences():
-                    # Reset to defaults
-                    st.session_state["email_tone"] = "formal"
-                    st.session_state["sender_name"] = "Donil"
-                    st.session_state["cc_emails"] = ""
-                    st.session_state["bcc_emails"] = ""
-                    st.session_state["subject_prefix"] = ""
-                    st.success("🔄 Settings cleared")
+                    st.success("Preferences cleared")
+                    time.sleep(1)
+                    if "preferences_loaded" in st.session_state:
+                        del st.session_state["preferences_loaded"]
                     st.rerun()
-        
-        # Status indicator
-        if preferences.preferences_exist():
-            st.caption("✅ Settings are saved locally")
-        else:
-            st.caption("⚠️ Settings not saved yet")
     
     # System Info
-    with st.sidebar.expander("ℹ️ System Info", expanded=False):
-        ollama_model = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
-        ollama_host = os.getenv("OLLAMA_HOST", "http://host.docker.internal:11434")
+    # with st.sidebar.expander("System Info", expanded=False):
+        # ollama_model = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
+        # ollama_host = os.getenv("OLLAMA_HOST", "http://host.docker.internal:11434")
         
-        st.markdown(f"""
-        **Model:** {ollama_model}  
-        **Ollama:** {ollama_host}
+        # st.markdown(f"""
+        # **Model:** {ollama_model}  
+        # **Ollama:** {ollama_host}
         
-        **Features:**
-        - 🤖 AI-powered email generation
-        - 📋 Smart task extraction
-        - 🎭 Multiple tone support
-        - 📧 HTML email formatting
-        """)
+        # **Features:**
+        # - 🤖 AI-refined emails
+        # - 📋 Task extraction
+        # - 🎭 Multiple tone support
+        # - 📧 HTML email formatting
+        # """)
 
 
 def extract_manager_name_from_email(email: str) -> str:
@@ -288,14 +262,14 @@ def main():
     sidebar_credentials()
     
     # Main header
-    st.markdown('<h1 class="main-header">📧 Email Automation System</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">Email Automation System</h1>', unsafe_allow_html=True)
     st.markdown(
         '<p class="sub-header">Transform your work log into professional email reports, instantly.</p>',
         unsafe_allow_html=True
     )
     
     # Instructions
-    with st.expander("📖 How to use", expanded=False):
+    with st.expander("How to use", expanded=False):
         st.markdown("""
         **Step 1:** Configure Gmail credentials in the sidebar (one-time setup)
         
@@ -318,19 +292,19 @@ def main():
     # Example templates
     example_templates = {
         "Custom": "",
-        "Engineering Update": """Today's tasks:
+        "Software Developers": """Today's tasks:
 - Fixed critical navigation bug in EasyCatering mobile app, took 3 hours
 - Implemented new dashboard feature for restaurant analytics
 - Attended sprint planning meeting and code review
 - Started working on user authentication module""",
         
-        "Design Work": """Completed today:
+        "Frontend Developer": """Completed today:
 - Created wireframes for new onboarding flow
 - Conducted user testing session with 5 participants
 - Updated design system documentation
 - Reviewed and approved icon set from external designer""",
         
-        "Marketing Tasks": """Today I:
+        "Social Media Marketing": """Today I:
 - Launched Q1 email campaign to 10k subscribers
 - Analyzed social media metrics and prepared report
 - Coordinated with design team on new landing page
@@ -339,11 +313,11 @@ def main():
     
     st.markdown("### Send your emails easily")
     
-    # ✅ Email Tone and Template selector side-by-side
+    # Email Tone and Template selector side-by-side
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("**Email tone** ℹ️", help="Choose the tone for your email")
+        st.markdown("**Email tone**", help="Choose the tone for your email")
         email_tone = st.selectbox(
             "Email tone",
             options=["formal", "neutral", "friendly"],
@@ -357,7 +331,7 @@ def main():
         st.session_state["email_tone"] = email_tone
     
     with col2:
-        st.markdown("**Select template** ℹ️", help="Choose a pre-made template or start from scratch")
+        st.markdown("**Select template**", help="Choose a pre-made template or start from scratch")
         template_choice = st.selectbox(
             "Select template",
             options=list(example_templates.keys()),
@@ -366,19 +340,24 @@ def main():
             label_visibility="collapsed"
         )
     
-    # ✅ Recipient email field
-    st.markdown("**Recipient email** ℹ️", help="Enter the email address of the recipient")
+    from modules import preferences
+    saved_prefs = preferences.load_preferences()
+
+    # Recipient email field
+    st.markdown("**Recipient email**", help="Enter the email address of the recipient")
     recipient_email = st.text_input(
         "Recipient email",
+        value=saved_prefs.get("default_recipient", ""),
         placeholder="manager@company.com",
         key="recipient_email_input",
         label_visibility="collapsed"
     )
     
-    # ✅ NEW: Subject field
-    st.markdown("**Subject** ℹ️", help="Enter email subject (leave blank for auto-generated)")
+    # Subject field
+    st.markdown("**Subject**", help="Enter email subject (leave blank for auto-generated)")
     subject_input = st.text_input(
         "Subject",
+        value=saved_prefs.get("default_subject", ""),
         placeholder="Daily Task Report (auto-generated if left blank)",
         key="subject_input",
         label_visibility="collapsed"
@@ -390,8 +369,8 @@ def main():
     else:
         initial_value = st.session_state.get("last_prompt", "")
     
-    # ✅ Your work log field
-    st.markdown("**Your work log** ℹ️", help="List your completed tasks and activities")
+    # Your work log field
+    st.markdown("**Your work log**", help="List your completed tasks and activities")
     raw_prompt = st.text_area(
         "Your work log",
         value=initial_value,
@@ -408,21 +387,21 @@ def main():
     
     with col1:
         send_button = st.button(
-            "📤 Send",
+            "Send",
             use_container_width=True,
             help="Send your work log without refinement"
         )
     
     with col2:
         refine_button = st.button(
-            "✨ Refine",
+            "Refine",
             use_container_width=True,
             help="Preview polished version before sending"
         )
     
     with col3:
         refine_and_send_button = st.button(
-            "🚀 Refine & Send",
+            "Refine & Send",
             type="primary",
             use_container_width=True,
             help="Generate refined email and send to your desired email address"
@@ -432,53 +411,53 @@ def main():
     if send_button or refine_button or refine_and_send_button:
         from_email, app_password = email_auth.get_credentials()
         if not from_email or not app_password:
-            st.error("❌ Please configure Gmail credentials in the sidebar first.")
+            st.error("Please configure Gmail credentials in the sidebar first.")
             st.stop()
         
         # Validate recipient email
         if not recipient_email or not recipient_email.strip():
-            st.error("❌ Please enter a recipient email address.")
+            st.error("Please enter a recipient email address.")
             st.stop()
         
         if not raw_prompt.strip():
-            st.error("❌ Please enter your work log.")
+            st.error("Please enter your work log.")
             st.stop()
     
-    # BUTTON 1: Send as-is (no AI processing)
+    # Send
     if send_button:
         handle_send_as_is(recipient_email, subject_input, raw_prompt)
     
-    # BUTTON 2: Refine (show preview with options)
+    # Refine
     elif refine_button:
         handle_refine(recipient_email, subject_input, raw_prompt)
     
-    # BUTTON 3: Refine & Send (existing behavior)
+    # Refine & Send
     elif refine_and_send_button:
         handle_refine_and_send(recipient_email, subject_input, raw_prompt)
     
-    # Show refined preview and action buttons if in refine mode
+    # Show refined preview
     if "refined_report" in st.session_state:
         show_refined_preview()
 
 
 def handle_send_as_is(recipient_email: str, subject_input: str, raw_prompt: str):
-    """Handle 'Send' button - send work log as-is without AI refinement."""
+    """Handle 'Send' button - send work log without any refinement."""
     
     from_email, app_password = email_auth.get_credentials()
     if not from_email or not app_password:
-        st.error("❌ Please configure Gmail credentials in the sidebar first.")
+        st.error("Please configure Gmail credentials in the sidebar first.")
         st.stop()
     
-    with st.spinner("📋 Processing your work log..."):
-        # Parse only tasks (recipient is already provided)
+    with st.spinner("Processing your work log..."):
+        # Parse only tasks
         tasks = prompt_parser.extract_tasks(raw_prompt)
         
         # Validation
         if not tasks:
-            st.error("❌ Could not extract any tasks. Please list your completed work.")
+            st.error("Could not extract any tasks. Please list your completed work.")
             st.stop()
         
-        # Get settings including new fields
+        # Get settings
         sender_name = st.session_state.get("sender_name", "Task Automation System")
         cc_emails = st.session_state.get("cc_emails", "")
         bcc_emails = st.session_state.get("bcc_emails", "")
@@ -488,7 +467,7 @@ def handle_send_as_is(recipient_email: str, subject_input: str, raw_prompt: str)
         from datetime import date
         date_str = date.today().strftime("%B %d, %Y")
         
-        # ✅ Use custom subject if provided, otherwise auto-generate
+        # Use custom subject if provided, otherwise auto-generate
         if subject_input and subject_input.strip():
             subject = subject_input.strip()
         else:
@@ -543,7 +522,7 @@ This report was sent via Task Automation System.
     
     # Show preview
     st.markdown("---")
-    st.markdown("### 📬 Sending Email")
+    st.markdown("### Sending Email")
     
     col1, col2 = st.columns([1, 3])
     with col1:
@@ -573,15 +552,15 @@ This report was sent via Task Automation System.
         progress_bar = st.progress(0)
         status_text = st.empty()
         
-        status_text.text("📝 Preparing email...")
+        status_text.text("Preparing email...")
         progress_bar.progress(25)
         time.sleep(0.3)
         
-        status_text.text("🔐 Authenticating with Gmail...")
+        status_text.text("Authenticating with Gmail...")
         progress_bar.progress(50)
         time.sleep(0.3)
         
-        status_text.text("📧 Sending email...")
+        status_text.text("Sending email...")
         progress_bar.progress(75)
         
         # Include CC/BCC in send
@@ -597,19 +576,19 @@ This report was sent via Task Automation System.
         )
         
         progress_bar.progress(100)
-        status_text.text("✅ Email sent successfully!")
+        status_text.text("Email sent successfully!")
         
-        st.success(f"✅ **Email sent successfully to {recipient_email}!**")
-        st.balloons()
+        st.success(f"**Email sent successfully to {recipient_email}!**")
+        st.snow()
         
         time.sleep(2)
         st.session_state["last_prompt"] = ""
-        st.info("🔄 Resetting form...")
+        st.info("Resetting form...")
         time.sleep(1)
         st.rerun()
     
     except Exception as e:
-        st.error("❌ **Failed to send email**")
+        st.error("**Failed to send email**")
         st.error(f"**Error:** {str(e)}")
 
 
@@ -618,16 +597,16 @@ def handle_refine(recipient_email: str, subject_input: str, raw_prompt: str):
     
     from_email, app_password = email_auth.get_credentials()
     if not from_email or not app_password:
-        st.error("❌ Please configure Gmail credentials in the sidebar first.")
+        st.error("Please configure Gmail credentials in the sidebar first.")
         st.stop()
     
-    with st.spinner("🤖 Refining your work log with AI..."):
+    with st.spinner("Refining your work log with AI..."):
         # Parse only tasks
         tasks = prompt_parser.extract_tasks(raw_prompt)
         
         # Validation
         if not tasks:
-            st.error("❌ Could not extract any tasks. Please list your completed work.")
+            st.error("Could not extract any tasks. Please list your completed work.")
             st.stop()
         
         # Get settings
@@ -651,7 +630,7 @@ def handle_refine(recipient_email: str, subject_input: str, raw_prompt: str):
             sender_name=sender_name,
         )
         
-        # ✅ Use custom subject if provided
+        # Use custom subject if provided
         if subject_input and subject_input.strip():
             report.subject = subject_input.strip()
         
@@ -674,16 +653,16 @@ def handle_refine_and_send(recipient_email: str, subject_input: str, raw_prompt:
     
     from_email, app_password = email_auth.get_credentials()
     if not from_email or not app_password:
-        st.error("❌ Please configure Gmail credentials in the sidebar first.")
+        st.error("Please configure Gmail credentials in the sidebar first.")
         st.stop()
     
-    with st.spinner("🤖 Processing your work log..."):
+    with st.spinner("Processing your work log..."):
         # Parse only tasks
         tasks = prompt_parser.extract_tasks(raw_prompt)
         
         # Validation
         if not tasks:
-            st.error("❌ Could not extract any tasks. Please list your completed work.")
+            st.error("Could not extract any tasks. Please list your completed work.")
             st.stop()
         
         # Get settings
@@ -712,7 +691,7 @@ def handle_refine_and_send(recipient_email: str, subject_input: str, raw_prompt:
             sender_name=sender_name,
         )
         
-        # ✅ Use custom subject if provided
+        # Use custom subject if provided
         if subject_input and subject_input.strip():
             report.subject = subject_input.strip()
         
@@ -747,12 +726,12 @@ def handle_refine_and_send(recipient_email: str, subject_input: str, raw_prompt:
         st.markdown(f"`{method}`")
     
     # HTML Preview
-    with st.expander("📧 View Email Content", expanded=True):
+    with st.expander("View Email Content", expanded=True):
         st.components.v1.html(report.body_html, height=600, scrolling=True)
     
     # Send email immediately
     st.markdown("---")
-    st.markdown("### 📤 Sending Email...")
+    st.markdown("### Sending Email...")
     
     try:
         from_email, app_password = email_auth.get_credentials()
@@ -760,15 +739,15 @@ def handle_refine_and_send(recipient_email: str, subject_input: str, raw_prompt:
         progress_bar = st.progress(0)
         status_text = st.empty()
         
-        status_text.text("📝 Preparing email...")
+        status_text.text("Preparing email...")
         progress_bar.progress(25)
         time.sleep(0.3)
         
-        status_text.text("🔐 Authenticating with Gmail...")
+        status_text.text("Authenticating with Gmail...")
         progress_bar.progress(50)
         time.sleep(0.3)
         
-        status_text.text("📧 Sending email...")
+        status_text.text("Sending email...")
         progress_bar.progress(75)
         
         # Include CC/BCC in send
@@ -783,19 +762,19 @@ def handle_refine_and_send(recipient_email: str, subject_input: str, raw_prompt:
         )
         
         progress_bar.progress(100)
-        status_text.text("✅ Email sent successfully!")
+        status_text.text("Email sent successfully!")
         
-        st.success(f"✅ **Email sent successfully to {recipient_email}!**")
+        st.success(f"**Email sent successfully to {recipient_email}!**")
         st.balloons()
         
         time.sleep(2)
         st.session_state["last_prompt"] = ""
-        st.info("🔄 Resetting form...")
+        st.info("Resetting form...")
         time.sleep(1)
         st.rerun()
     
     except Exception as e:
-        st.error("❌ **Failed to send email**")
+        st.error("Failed to send email")
         st.error(f"**Error:** {str(e)}")
 
 
@@ -839,7 +818,7 @@ def show_refined_preview():
         st.markdown(f"`{method}`")
     
     # HTML Preview
-    with st.expander("📧 View Email Content", expanded=True):
+    with st.expander("View Email Content", expanded=True):
         st.components.v1.html(report.body_html, height=600, scrolling=True)
     
     # Action buttons after preview
@@ -848,21 +827,21 @@ def show_refined_preview():
     col1, col2, col3 = st.columns([2, 2, 1])
     
     with col1:
-        if st.button("🔄 Refine Again", use_container_width=True, key="refine_again_btn"):
+        if st.button("Refine Again", use_container_width=True, key="refine_again_btn"):
             # Clear the refined report and trigger new refinement
             raw_prompt = st.session_state.get("last_prompt", "")
-            subject_input = st.session_state.get("subject_input", "")  # ✅ Added
+            subject_input = st.session_state.get("subject_input", "")
             recipient = st.session_state.get("refined_recipient")
             del st.session_state["refined_report"]
-            handle_refine(recipient, subject_input, raw_prompt)  # ✅ Added subject_input
+            handle_refine(recipient, subject_input, raw_prompt)
     
     with col2:
-        if st.button("📤 Send", type="primary", use_container_width=True, key="send_refined_btn"):
+        if st.button("Send", type="primary", use_container_width=True, key="send_refined_btn"):
             # Send the refined email
             send_refined_email(report, recipient_email)
     
     with col3:
-        if st.button("❌ Cancel", use_container_width=True, key="cancel_refined_btn"):
+        if st.button("Cancel", use_container_width=True, key="cancel_refined_btn"):
             del st.session_state["refined_report"]
             del st.session_state["refined_recipient"]
             del st.session_state["refined_tasks"]
@@ -873,30 +852,30 @@ def send_refined_email(report, recipient_email: str):
     """Send the refined email that's currently in preview."""
     
     st.markdown("---")
-    st.markdown("### 📤 Sending Refined Email...")
+    st.markdown("### Sending Refined Email...")
     
     try:
         from_email, app_password = email_auth.get_credentials()
         
-        # ✅ Get CC/BCC for sending
+        # Get CC/BCC for sending
         cc_emails = st.session_state.get("cc_emails", "")
         bcc_emails = st.session_state.get("bcc_emails", "")
         
         progress_bar = st.progress(0)
         status_text = st.empty()
         
-        status_text.text("📝 Preparing email...")
+        status_text.text("Preparing email...")
         progress_bar.progress(25)
         time.sleep(0.3)
         
-        status_text.text("🔐 Authenticating with Gmail...")
+        status_text.text("Authenticating with Gmail...")
         progress_bar.progress(50)
         time.sleep(0.3)
         
-        status_text.text("📧 Sending email...")
+        status_text.text("Sending email...")
         progress_bar.progress(75)
         
-        # ✅ Include CC/BCC in send
+        # Include CC/BCC in send
         email_sender.send_email(
             from_email=from_email,
             app_password=app_password,
@@ -908,9 +887,9 @@ def send_refined_email(report, recipient_email: str):
         )
         
         progress_bar.progress(100)
-        status_text.text("✅ Email sent successfully!")
+        status_text.text("Email sent successfully!")
         
-        st.success(f"✅ **Email sent successfully to {recipient_email}!**")
+        st.success(f"**Email sent successfully to {recipient_email}!**")
         st.balloons()
         
         # Clear session state
@@ -923,12 +902,12 @@ def send_refined_email(report, recipient_email: str):
         if "refined_tasks" in st.session_state:
             del st.session_state["refined_tasks"]
         
-        st.info("🔄 Resetting form...")
+        st.info("Resetting form...")
         time.sleep(1)
         st.rerun()
     
     except Exception as e:
-        st.error("❌ **Failed to send email**")
+        st.error("**Failed to send email**")
         st.error(f"**Error:** {str(e)}")
 
 

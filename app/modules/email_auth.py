@@ -155,7 +155,7 @@ def validate_credentials(email: str, app_password: str) -> Tuple[bool, str]:
         server.login(email, app_password)
         server.quit()
         
-        return True
+        return (True, "")
         
     except smtplib.SMTPAuthenticationError as e:
         # Invalid credentials

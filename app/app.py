@@ -99,13 +99,6 @@ def sidebar_credentials():
     # Auto-load credentials
     email_auth.load_saved_credentials()
     
-    # Auto-load preferences
-    from modules import preferences
-    if "preferences_loaded" not in st.session_state:
-        saved_prefs = preferences.load_preferences()
-        st.session_state["email_tone"] = saved_prefs["email_tone"]
-        st.session_state["preferences_loaded"] = True
-    
     # Gmail Auth Section
     with st.sidebar.expander("Gmail Credentials", expanded=True):
         st.markdown("**Required for sending emails**")
@@ -119,7 +112,13 @@ def sidebar_credentials():
             
             # Logout
             if st.button("Logout", use_container_width=True, type="primary"):
+                # ONLY clear credentials, NOT preferences
                 email_auth.clear_credentials(delete_from_disk=True)
+                
+                # Clear session state
+                for key in list(st.session_state.keys()):
+                    del st.session_state[key]
+                
                 st.success("Logged out successfully!")
                 time.sleep(1)
                 st.rerun()
@@ -146,13 +145,12 @@ def sidebar_credentials():
             # Login
             if st.button("Login", use_container_width=True, type="primary"):
                 if email and app_password:
-                    with st.spinner("🔐 Validating credentials with Gmail..."):
+                    with st.spinner("Validating credentials with Gmail..."):
                         is_valid, message = email_auth.validate_credentials(email, app_password)
                     
                     if is_valid:
                         # Credentials are valid
                         email_auth.store_credentials(email, app_password, persist=True)
-                        st.success(message)
                         st.success("Logged in successfully!")
                         time.sleep(2)
                         st.rerun()
@@ -166,63 +164,79 @@ def sidebar_credentials():
                 else:
                     st.error("Please fill both fields")
     
-    # Preferences Section
-    with st.sidebar.expander("Preferences", expanded=False):
+    # Only show Preferences if logged in
+    from_email, _ = email_auth.get_credentials()
+    
+    if from_email:
+        # Load preferences from disk
+        from modules import preferences
         saved_prefs = preferences.load_preferences()
         
-        # Sender Name
-        sender_name = st.text_input(
-            "Sender name",
-            value=saved_prefs.get("sender_name", "Donil"),
-            key="sender_name",
-        )
+        # Update session state with loaded preferences
+        if "email_tone" not in st.session_state:
+            st.session_state["email_tone"] = saved_prefs["email_tone"]
         
-        # Default Recipient
-        default_recipient = st.text_input(
-            "Default recipient email",
-            value=saved_prefs.get("default_recipient", ""),
-            placeholder="manager@company.com",
-            help="Your usual recipient (auto-fills the recipient field)",
-            key="default_recipient",
-        )
-        
-        # Default Subject
-        default_subject = st.text_input(
-            "Default subject",
-            value=saved_prefs.get("default_subject", ""),
-            placeholder="Daily Task Report",
-            help="Your usual subject line (auto-fills the subject field)",
-            key="default_subject",
-        )
-        
-        # Save Preferences Button
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            if st.button("Save Preferences", use_container_width=True):
-                prefs_to_save = {
-                    "email_tone": st.session_state.get("email_tone", "formal"),
-                    "sender_name": st.session_state.get("sender_name", "Donil"),
-                    "cc_emails": st.session_state.get("cc_emails", ""),
-                    "bcc_emails": st.session_state.get("bcc_emails", ""),
-                    "subject_prefix": st.session_state.get("subject_prefix", ""),
-                    "default_recipient": st.session_state.get("default_recipient", ""),
-                    "default_subject": st.session_state.get("default_subject", ""),
-                }
-                
-                if preferences.save_preferences(prefs_to_save):
-                    st.success("Preferences saved!")
-                else:
-                    st.error("Failed to save preferences")
-        
-        with col2:
-            if st.button("Clear", use_container_width=True):
-                if preferences.clear_preferences():
-                    st.success("Preferences cleared")
-                    time.sleep(1)
-                    if "preferences_loaded" in st.session_state:
-                        del st.session_state["preferences_loaded"]
-                    st.rerun()
+        # Preferences Section
+        with st.sidebar.expander("Preferences", expanded=True):
+            # Reload preferences for this section
+            saved_prefs = preferences.load_preferences()
+            
+            # Sender Name
+            sender_name = st.text_input(
+                "Sender name",
+                value=saved_prefs.get("sender_name", ""),
+                placeholder="Your name",
+                key="sender_name",
+            )
+            
+            # Default Recipient
+            st.markdown("**Default recipient email**", help="Your usual recipient (auto-fills the recipient field)")
+            default_recipient = st.text_input(
+                "Default recipient email",
+                value=saved_prefs.get("default_recipient", ""),
+                placeholder="manager@company.com",
+                key="default_recipient",
+                label_visibility="collapsed"
+            )
+            
+            # Default Subject
+            st.markdown("**Default subject**", help="Your usual subject line (auto-fills the subject field)")
+            default_subject = st.text_input(
+                "Default subject",
+                value=saved_prefs.get("default_subject", ""),
+                placeholder="Daily Task Report",
+                key="default_subject",
+                label_visibility="collapsed"
+            )
+            
+            # Save Preferences Button
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                if st.button("Save Preferences", use_container_width=True):
+                    prefs_to_save = {
+                        "email_tone": st.session_state.get("email_tone", "formal"),
+                        "sender_name": st.session_state.get("sender_name", ""),
+                        "cc_emails": st.session_state.get("cc_emails", ""),
+                        "bcc_emails": st.session_state.get("bcc_emails", ""),
+                        "subject_prefix": st.session_state.get("subject_prefix", ""),
+                        "default_recipient": st.session_state.get("default_recipient", ""),
+                        "default_subject": st.session_state.get("default_subject", ""),
+                    }
+                    
+                    if preferences.save_preferences(prefs_to_save):
+                        st.success("Preferences saved!")
+                        time.sleep(2)
+                        st.rerun()
+                    else:
+                        st.error("Failed to save preferences")
+            
+            with col2:
+                if st.button("Clear", use_container_width=True):
+                    if preferences.clear_preferences():
+                        st.success("Preferences cleared")
+                        time.sleep(1)
+                        st.rerun()
     
     # System Info
     # with st.sidebar.expander("System Info", expanded=False):
@@ -313,20 +327,51 @@ def main():
     
     st.markdown("### Send your emails easily")
     
+    # Check if user is logged in
+    from_email, _ = email_auth.get_credentials()
+    
+    # Load preferences only if logged in
+    from modules import preferences
+    if from_email:
+        saved_prefs = preferences.load_preferences()
+    else:
+        # Use defaults when not logged in
+        saved_prefs = {
+            "email_tone": "formal",
+            "sender_name": "",
+            "default_recipient": "",
+            "default_subject": "",
+        }
+    
     # Email Tone and Template selector side-by-side
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("**Email tone**", help="Choose the tone for your email")
-        email_tone = st.selectbox(
+        
+        tone_display = ["Formal", "Neutral", "Friendly"]
+        tone_values = ["formal", "neutral", "friendly"]
+        
+        # Get current saved tone from preferences
+        current_tone = saved_prefs.get("email_tone", "formal")
+        
+        # Find index of current tone
+        try:
+            current_index = tone_values.index(current_tone)
+        except ValueError:
+            current_index = 0
+        
+        email_tone_display = st.selectbox(
             "Email tone",
-            options=["formal", "neutral", "friendly"],
-            index=["formal", "neutral", "friendly"].index(
-                st.session_state.get("email_tone", "formal")
-            ),
+            options=tone_display,
+            index=current_index,
             key="email_tone_main",
             label_visibility="collapsed"
         )
+        
+        # Convert displayed value back to lowercase for storage
+        email_tone = tone_values[tone_display.index(email_tone_display)]
+        
         # Sync with session state
         st.session_state["email_tone"] = email_tone
     
@@ -340,10 +385,7 @@ def main():
             label_visibility="collapsed"
         )
     
-    from modules import preferences
-    saved_prefs = preferences.load_preferences()
-
-    # Recipient email field
+    # Recipient email field (empty if not logged in)
     st.markdown("**Recipient email**", help="Enter the email address of the recipient")
     recipient_email = st.text_input(
         "Recipient email",
@@ -353,7 +395,7 @@ def main():
         label_visibility="collapsed"
     )
     
-    # Subject field
+    # Subject field (empty if not logged in)
     st.markdown("**Subject**", help="Enter email subject (leave blank for auto-generated)")
     subject_input = st.text_input(
         "Subject",

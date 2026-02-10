@@ -405,25 +405,33 @@ def main():
         label_visibility="collapsed"
     )
     
-    # Load template if selected
-    if template_choice != "Custom":
-        initial_value = example_templates[template_choice]
-    else:
-        initial_value = st.session_state.get("last_prompt", "")
-    
-    # Your work log field
+    # Your work log field - UPDATED TO FIX ERASING BUG
     st.markdown("**Your work log**", help="List your completed tasks and activities")
+    
+    # Initialize work log state if not exists
+    if "raw_prompt_input" not in st.session_state:
+        st.session_state["raw_prompt_input"] = ""
+    
+    # Handle template selection changes
+    if template_choice != "Custom":
+        # Track the last selected template
+        last_template = st.session_state.get("last_selected_template", None)
+        if last_template != template_choice:
+            # Template changed, load new content
+            st.session_state["raw_prompt_input"] = example_templates[template_choice]
+            st.session_state["last_selected_template"] = template_choice
+    else:
+        # User selected Custom, track it but don't override their text
+        st.session_state["last_selected_template"] = "Custom"
+    
+    # Text area - state managed by key only (no value parameter)
     raw_prompt = st.text_area(
         "Your work log",
-        value=initial_value,
         height=250,
         placeholder="Today's tasks:\n- Task 1\n- Task 2\n- Task 3",
         key="raw_prompt_input",
         label_visibility="collapsed"
     )
-    
-    # Save to session
-    st.session_state["last_prompt"] = raw_prompt
     
     col1, col2, col3 = st.columns([1, 1, 1])
     
@@ -467,7 +475,7 @@ def main():
     
     # Send
     if send_button:
-        handle_send_as_is(recipient_email, subject_input, raw_prompt)
+        handle_send(recipient_email, subject_input, raw_prompt)
     
     # Refine
     elif refine_button:
@@ -482,7 +490,7 @@ def main():
         show_refined_preview()
 
 
-def handle_send_as_is(recipient_email: str, subject_input: str, raw_prompt: str):
+def handle_send(recipient_email: str, subject_input: str, raw_prompt: str):
     """Handle 'Send' button - send work log without any refinement."""
     
     from_email, app_password = email_auth.get_credentials()
@@ -624,7 +632,10 @@ This report was sent via Task Automation System.
         st.snow()
         
         time.sleep(2)
-        st.session_state["last_prompt"] = ""
+        if "raw_prompt_input" in st.session_state:
+            st.session_state["raw_prompt_input"] = ""
+        if "last_selected_template" in st.session_state:
+            st.session_state["last_selected_template"] = "Custom"
         st.info("Resetting form...")
         time.sleep(1)
         st.rerun()
@@ -810,7 +821,10 @@ def handle_refine_and_send(recipient_email: str, subject_input: str, raw_prompt:
         st.balloons()
         
         time.sleep(2)
-        st.session_state["last_prompt"] = ""
+        if "raw_prompt_input" in st.session_state:
+            st.session_state["raw_prompt_input"] = ""
+        if "last_selected_template" in st.session_state:
+            st.session_state["last_selected_template"] = "Custom"
         st.info("Resetting form...")
         time.sleep(1)
         st.rerun()
@@ -936,7 +950,12 @@ def send_refined_email(report, recipient_email: str):
         
         # Clear session state
         time.sleep(2)
-        st.session_state["last_prompt"] = ""
+        
+        if "raw_prompt_input" in st.session_state:
+            st.session_state["raw_prompt_input"] = ""
+        if "last_selected_template" in st.session_state:
+            st.session_state["last_selected_template"] = "Custom"
+
         if "refined_report" in st.session_state:
             del st.session_state["refined_report"]
         if "refined_recipient" in st.session_state:

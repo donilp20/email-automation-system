@@ -1,13 +1,7 @@
 import smtplib
-import ssl
-import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Optional
-
-# Get config from environment directly
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 
 
 def send_email(
@@ -21,7 +15,7 @@ def send_email(
     bcc_emails: str = "",
 ):
     """
-    Send an email via Gmail SMTP with optional CC and BCC.
+    Send an email via Gmail SMTP with SSL on port 465 (cloud-compatible).
     
     Args:
         from_email: Sender's Gmail address
@@ -33,21 +27,15 @@ def send_email(
         cc_emails: Comma-separated CC emails (optional)
         bcc_emails: Comma-separated BCC emails (optional)
     """
-    import smtplib
-    from email.mime.multipart import MIMEMultipart
-    from email.mime.text import MIMEText
-    
     # Create message
     msg = MIMEMultipart("alternative")
     msg["From"] = from_email
     msg["To"] = to_email
     msg["Subject"] = subject
     
-    # ✅ Add CC if provided
+    # Add CC if provided
     if cc_emails and cc_emails.strip():
         msg["Cc"] = cc_emails.strip()
-    
-    # Note: BCC is NOT added to headers (that's the point of BCC)
     
     # Attach plain text version (fallback)
     if text_body:
@@ -58,7 +46,7 @@ def send_email(
     part2 = MIMEText(html_body, "html")
     msg.attach(part2)
     
-    # ✅ Parse all recipients (TO + CC + BCC)
+    # Parse all recipients (TO + CC + BCC)
     all_recipients = [to_email]
     
     if cc_emails and cc_emails.strip():
@@ -69,12 +57,13 @@ def send_email(
         bcc_list = [email.strip() for email in bcc_emails.split(",") if email.strip()]
         all_recipients.extend(bcc_list)
     
-    # Send email via Gmail SMTP
+    # ✅ CRITICAL CHANGE: Use SMTP_SSL on port 465 for cloud compatibility
     try:
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
         server.login(from_email, app_password)
-        server.sendmail(from_email, all_recipients, msg.as_string())  # ✅ Send to all
+        server.sendmail(from_email, all_recipients, msg.as_string())
         server.quit()
+        print(f"✅ Email sent successfully to {len(all_recipients)} recipient(s)")
     except Exception as e:
+        print(f"❌ Failed to send email: {e}")
         raise Exception(f"Failed to send email: {str(e)}")

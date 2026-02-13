@@ -1,21 +1,22 @@
-# Core
+# Core Framework
 streamlit==1.39.0
 python-dotenv==1.0.1
 
-# LLM & AI
-langchain==0.3.0
-langchain-community==0.3.0
+# Groq AI Integration (replacing Ollama)
+langchain-groq>=0.1.0
 langchain-core==0.3.0
 
-# HTTP & APIs
-requests==2.32.3
-httpx==0.27.0
+# Supabase Database (replacing local JSON)
+supabase>=2.0.0
+postgrest>=0.10.0
 
-# Email (built-in smtplib is sufficient, but adding email-validator)
+# Email
 email-validator==2.2.0
+
+# Security & Encryption
+cryptography==42.0.0
 
 # Utilities
 python-dateutil==2.9.0
-
-# Encryption for credential storage
-cryptography==42.0.0
+requests==2.32.3
+httpx==0.27.0

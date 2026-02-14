@@ -57,13 +57,13 @@ def send_email(
         bcc_list = [email.strip() for email in bcc_emails.split(",") if email.strip()]
         all_recipients.extend(bcc_list)
     
-    # ✅ CRITICAL CHANGE: Use SMTP_SSL on port 465 for cloud compatibility
+    # Use SMTP_SSL on port 465 for cloud compatibility
     try:
         server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
         server.login(from_email, app_password)
         server.sendmail(from_email, all_recipients, msg.as_string())
         server.quit()
-        print(f"✅ Email sent successfully to {len(all_recipients)} recipient(s)")
+        print(f"Email sent successfully to {len(all_recipients)} recipient(s)")
     except Exception as e:
-        print(f"❌ Failed to send email: {e}")
+        print(f"Failed to send email: {e}")
         raise Exception(f"Failed to send email: {str(e)}")

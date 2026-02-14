@@ -31,7 +31,7 @@ def load_saved_credentials() -> None:
         st.session_state["smtp_email"] = email
         st.session_state["smtp_app_password_hash"] = hash_token(app_password)
         st.session_state["smtp_app_password_plain"] = app_password
-        print(f"✅ Auto-loaded credentials for: {email}")
+        print(f"Auto-loaded credentials for: {email}")
     
     # Mark as loaded (even if nothing was found)
     st.session_state["credentials_loaded"] = True
@@ -60,7 +60,7 @@ def store_credentials(email: str, app_password: str, persist: bool = True) -> No
         storage = get_credential_storage()
         success = storage.save_credentials(email, app_password)
         if success:
-            print(f"✅ Credentials stored and persisted for: {email}")
+            print(f"Credentials stored and persisted for: {email}")
 
 
 def get_credentials() -> Tuple[Optional[str], Optional[str]]:
@@ -75,11 +75,11 @@ def get_credentials() -> Tuple[Optional[str], Optional[str]]:
 
     # ADD THIS DEBUG LOGGING
     if email and pwd:
-        print(f"✅ get_credentials() - Email: {email}, Password: {'*' * len(pwd)} ({len(pwd)} chars)")
+        print(f"get_credentials() - Email: {email}, Password: {'*' * len(pwd)} ({len(pwd)} chars)")
     elif email and not pwd:
-        print(f"⚠️  get_credentials() - Email found but password is None!")
+        print(f"get_credentials() - Email found but password is None!")
     else:
-        print(f"❌ get_credentials() - No credentials in session state")
+        print(f"get_credentials() - No credentials in session state")
 
     return email, pwd
 
@@ -108,7 +108,7 @@ def clear_credentials(delete_from_disk: bool = True) -> None:
     if delete_from_disk:
         storage = get_credential_storage()
         storage.delete_credentials()
-        print("✅ Credentials cleared from session and disk")
+        print("Credentials cleared from session and disk")
 
 
 def credentials_are_saved_on_disk() -> bool:

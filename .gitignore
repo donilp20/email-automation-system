@@ -22,13 +22,12 @@ ENV/
 # Docker
 docker-compose.override.yml
 
-# NEW: Stored credentials (DO NOT COMMIT)
-app/data/credentials.json
-app/data/.credentials.enc
+# Streamlit secrets
+.streamlit/secrets.toml
 
-# Data files (optional - uncomment if you don't want to commit datasets)
-# app/data/*.csv
-# app/data/*.json
+# Local data (no longer needed in cloud)
+app/data/*.json
+app/data/.credentials.enc
 
 # IDE
 .vscode/
@@ -53,3 +52,6 @@ app/data/.credentials.enc
 .DS_Store
 .AppleDouble
 .LSOverride
+
+# Generating Encryption Key
+generate_key.py

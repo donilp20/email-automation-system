@@ -141,7 +141,7 @@ Remember to use HTML format with proper styling."""
             HumanMessage(content=user_prompt)
         ]
         
-        print(f"🤖 Invoking Groq API with {len(tasks)} tasks...")
+        print(f"Invoking Groq API with {len(tasks)} tasks...")
         response = llm.invoke(messages)
         body_html = response.content
         
@@ -157,7 +157,7 @@ Remember to use HTML format with proper styling."""
         
         body_html = body_html.strip()
         
-        print(f"✅ Groq API generated {len(body_html)} characters")
+        print(f"Groq API generated {len(body_html)} characters")
         
         return EmailReport(
             subject=subject,
@@ -166,7 +166,7 @@ Remember to use HTML format with proper styling."""
         )
         
     except Exception as e:
-        print(f"❌ Groq API failed: {e}")
+        print(f"Groq API failed: {e}")
         st.error(f"Failed to generate email: {e}")
         raise
 
@@ -176,7 +176,7 @@ class ReportGenerator:
     """Legacy wrapper for backward compatibility."""
     
     def __init__(self, model: str = None, base_url: str = None):
-        print("🤖 Using Groq API for email generation (cloud mode)")
+        print("Using Groq API for email generation (cloud mode)")
     
     def generate_report(
         self,

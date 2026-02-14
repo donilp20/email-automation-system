@@ -9,7 +9,7 @@ def test_gmail_smtp():
     app_password = "puzc yhfx stci pgsp"
     
     print("=" * 60)
-    print("🔍 Testing Gmail SMTP Connection")
+    print("Testing Gmail SMTP Connection")
     print("=" * 60)
     print(f"Email: {email}")
     print(f"App Password Length: {len(app_password)}")

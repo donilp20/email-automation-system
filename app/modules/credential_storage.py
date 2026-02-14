@@ -11,9 +11,8 @@ def get_encryption_key() -> bytes:
         return st.secrets["ENCRYPTION_KEY"].encode()
     else:
         # For development only - in production, always use secrets
-        st.warning("⚠️ Using temporary encryption key. Set ENCRYPTION_KEY in secrets for production.")
+        st.warning("Using temporary encryption key. Set ENCRYPTION_KEY in secrets for production.")
         return Fernet.generate_key()
-
 
 def encrypt_password(password: str) -> str:
     """Encrypt the app password."""
@@ -52,7 +51,7 @@ def save_credentials(user_id: str, email: str, app_password: str) -> bool:
                 "email_address": email,
                 "encrypted_app_password": encrypted_pwd
             }).eq("user_id", user_id).execute()
-            print(f"✅ Updated credentials for: {user_id}")
+            print(f"Updated credentials for: {user_id}")
         else:
             # Insert new user
             supabase.table("user_config").insert({
@@ -61,12 +60,12 @@ def save_credentials(user_id: str, email: str, app_password: str) -> bool:
                 "encrypted_app_password": encrypted_pwd,
                 "preferences": {}
             }).execute()
-            print(f"✅ Created new credentials for: {user_id}")
+            print(f"Created new credentials for: {user_id}")
         
         return True
     except Exception as e:
         st.error(f"Failed to save credentials: {e}")
-        print(f"❌ Failed to save credentials: {e}")
+        print(f"Failed to save credentials: {e}")
         return False
 
 
@@ -90,11 +89,11 @@ def load_credentials(user_id: str) -> Optional[Dict[str, str]]:
                 "email": data["email_address"],
                 "app_password": decrypt_password(data["encrypted_app_password"])
             }
-        print(f"ℹ️ No credentials found for: {user_id}")
+        print(f"No credentials found for: {user_id}")
         return None
     except Exception as e:
         st.error(f"Failed to load credentials: {e}")
-        print(f"❌ Failed to load credentials: {e}")
+        print(f"Failed to load credentials: {e}")
         return None
 
 
@@ -103,11 +102,11 @@ def delete_credentials(user_id: str) -> bool:
     try:
         supabase = get_supabase_client()
         supabase.table("user_config").delete().eq("user_id", user_id).execute()
-        print(f"✅ Deleted credentials for: {user_id}")
+        print(f"Deleted credentials for: {user_id}")
         return True
     except Exception as e:
         st.error(f"Failed to delete credentials: {e}")
-        print(f"❌ Failed to delete credentials: {e}")
+        print(f"Failed to delete credentials: {e}")
         return False
 
 
@@ -118,18 +117,18 @@ def credentials_exist(user_id: str) -> bool:
         response = supabase.table("user_config").select("id").eq("user_id", user_id).execute()
         return len(response.data) > 0
     except Exception as e:
-        print(f"❌ Failed to check credentials: {e}")
+        print(f"Failed to check credentials: {e}")
         return False
 
 
-# Legacy compatibility functions (for backward compatibility with existing code)
+# Legacy compatibility functions
 class CredentialStorage:
     """Legacy wrapper for backward compatibility."""
     
     def __init__(self, storage_dir: str = None):
         # Ignore storage_dir in cloud mode
         self.user_id = None
-        print("📁 Using Supabase for credential storage (cloud mode)")
+        print("Using Supabase for credential storage (cloud mode)")
     
     def save_credentials(self, email: str, app_password: str) -> bool:
         # Use email as user_id

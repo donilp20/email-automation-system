@@ -1,73 +1,77 @@
-# 📧 Email Task Report Automation System
+# Email Task Report Automation System
 
 > **Transform your daily work log into professional email reports with AI-powered generation and automated Gmail delivery.**
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.31-FF4B4B.svg)](https://streamlit.io/)
-[![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED.svg)](https://www.docker.com/)
+[![Cloud](https://img.shields.io/badge/Cloud-Native-00ADD8.svg)](https://streamlit.io/cloud)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![LLM](https://img.shields.io/badge/LLM-Llama%203.1%208B-orange.svg)](https://ollama.ai/)
+[![LLM](https://img.shields.io/badge/LLM-Llama%203.1%208B-orange.svg)](https://groq.com/)
 
 ---
 
-## 🎯 Overview
+## Overview
 
-**Email Task Report Automation System** is a production-ready web application designed to streamline your daily work reporting. Simply paste your work log in natural language, and the system automatically:
+**Email Task Report Automation System** is a cloud-native web application designed to streamline your daily work reporting. Simply paste your work log in natural language, and the system automatically:
 
-- **Extracts** recipient email addresses
-- **Structures** your tasks intelligently
-- **Generates** professional HTML emails using a local LLM (Llama 3.1 8B)
+- **Extracts** tasks from natural language input
+- **Structures** your work log intelligently
+- **Generates** professional HTML emails using Groq AI (Llama 3.1 8B Instant)
 - **Sends** reports via Gmail SMTP with secure authentication
-- **Previews** your email before sending
+- **Stores** user preferences and credentials securely in the cloud
+- **Edits** AI-refined emails before sending
 
-**Key Differentiator:** All AI processing runs **locally via Ollama** — no external API calls, no data leaves your machine, and no subscription costs.
+**Key Differentiator:** Fully cloud-native architecture with zero local infrastructure — deploys to Streamlit Cloud in minutes with persistent data storage via Supabase.
 
 ---
 
-## ✨ Features
+## Features
 
-### 🤖 AI-Powered Generation
-- **Local LLM Integration**: Llama 3.1 8B running via Ollama for privacy-first email generation
+### Email Generation
+- **Groq API Integration**: Lightning-fast Llama 3.1 8B Instant for professional email generation
 - **Multiple Tone Options**: Choose between formal, neutral, or friendly communication styles
-- **Smart Fallback**: Template-based HTML generation when LLM is unavailable
+- **Editable Refinement**: Edit AI-generated emails before sending
+- **Smart Fallback**: Template-based HTML generation when API is unavailable
 
-### 📝 Intelligent Parsing
+### Intelligent Parsing
 - **Natural Language Input**: Paste tasks as bullets, numbered lists, or plain paragraphs
-- **Automatic Email Detection**: Extracts recipient addresses using regex and heuristics
 - **Context-Aware Structuring**: Identifies task headers, completions, and in-progress items
+- **Template Library**: Pre-built templates for developers, designers, and marketers
 
-### 🔒 Secure Email Delivery
-- **Gmail SMTP**: Industry-standard TLS encryption (port 587)
+### Secure Credential Management
+- **Gmail SMTP**: Industry-standard TLS encryption (port 465)
 - **App Password Authentication**: Secure credential management without exposing main password
-- **Session-Only Storage**: Credentials stored in memory, never written to disk
+- **Encrypted Storage**: Fernet encryption for credentials in Supabase PostgreSQL
+- **Session Persistence**: Login once, credentials remain secure across sessions
 
-### 🐳 Production-Ready Deployment
-- **Fully Dockerized**: Consistent environment across all platforms
-- **Docker Compose**: One-command orchestration of app and dependencies
-- **Graceful Degradation**: Automatic fallback when services are unavailable
+### Cloud-Native Architecture
+- **Streamlit Community Cloud**: Zero-infrastructure deployment
+- **Supabase PostgreSQL**: Persistent data storage with row-level security
+- **Groq API**: Ultra-fast AI inference with 500+ tokens/second
+- **Auto-Scaling**: Handles concurrent users without configuration
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Streamlit Web UI                         │
-│              (User Input + Email Preview)                   │
+│              Streamlit Community Cloud                       │
+│              (Web UI + Application Logic)                   │
 └─────────────────────┬───────────────────────────────────────┘
                       │
                       ▼
          ┌────────────────────────┐
          │   Prompt Parser        │
-         │  (Extract Email +      │
-         │   Structure Tasks)     │
+         │  (Extract & Structure  │
+         │      Tasks)            │
          └────────┬───────────────┘
                   │
                   ▼
     ┌─────────────────────────────┐
     │   Report Generator          │
     │   ┌─────────────────────┐  │
-    │   │  Ollama LLM         │  │
+    │   │  Groq API           │  │
     │   │  (Llama 3.1 8B)     │  │
     │   └─────────────────────┘  │
     │          ↓ (on fail)       │
@@ -79,72 +83,73 @@
               ▼
     ┌────────────────────────┐
     │   Email Sender         │
-    │   (Gmail SMTP/TLS)     │
+    │   (Gmail SMTP/SSL)     │
+    └────────────────────────┘
+              │
+              ▼
+    ┌────────────────────────┐
+    │   Supabase PostgreSQL  │
+    │   - User Credentials   │
+    │   - Preferences        │
+    │   (Fernet Encrypted)   │
     └────────────────────────┘
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
 | **Frontend** | Streamlit | Interactive web UI with custom CSS |
 | **Backend** | Python 3.11 | Core application logic |
-| **AI/ML** | Ollama + Llama 3.1 8B | Local LLM for email generation |
-| **Orchestration** | LangChain | LLM integration and prompt management |
-| **Email** | smtplib + MIME | Gmail SMTP with TLS encryption |
-| **Parsing** | Regex + Heuristics | Email extraction and task structuring |
-| **Containerization** | Docker + Docker Compose | Isolated, reproducible environment |
+| **AI/ML** | Groq API + Llama 3.1 8B | Ultra-fast AI inference (500+ tokens/sec) |
+| **Database** | Supabase (PostgreSQL) | Encrypted credential & preference storage |
+| **Email** | smtplib + MIME | Gmail SMTP with SSL/TLS encryption |
+| **Parsing** | Regex + Heuristics | Task extraction and structuring |
+| **Deployment** | Streamlit Cloud | Auto-scaling serverless hosting |
+| **Security** | Fernet Encryption | AES-128 credential encryption |
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 Email-Automation-System/
 │
 ├── app/
 │   ├── app.py                      # Main Streamlit application
-│   ├── config.py                   # Environment configuration (Ollama, SMTP)
 │   │
 │   ├── modules/
 │   │   ├── __init__.py
-│   │   ├── email_auth.py           # Gmail credential management
+│   │   ├── credential_storage.py   # Supabase credential management
+│   │   ├── preferences.py          # User preferences storage
 │   │   ├── email_sender.py         # SMTP email delivery
 │   │   ├── prompt_parser.py        # NLP-based task extraction
-│   │   └── report_generator.py     # LLM + fallback email generation
+│   │   └── report_generator.py     # Groq API + fallback generation
 │   │
-│   ├── data/
-│   │   ├── evaluation_results.json # Parser performance metrics
-│   │   └── synthetic_dataset.csv   # Training/testing data
-│   │
-│   └── prompts/                    # (Optional) Prompt engineering templates
+│   └── prompts/                    # Prompt engineering templates
 │
-├── scripts/
-│   ├── evaluate_parser.py          # Parser accuracy evaluation
-│   └── generate_dataset.py         # Synthetic data generation
+├── .streamlit/
+│   └── secrets.toml                # Local secrets (git-ignored)
 │
-├── Dockerfile                      # App container definition
-├── docker-compose.yml              # Multi-service orchestration
 ├── requirements.txt                # Python dependencies
 │
-├── .dockerignore
 ├── .gitignore
-└── README.md                       # This file
+└── README.md
 ```
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
 Before you begin, ensure you have:
 
-- **macOS** (or Linux/Windows with Docker)
-- **Docker Desktop** installed and running
-- **Ollama** installed ([Download here](https://ollama.ai/))
+- **GitHub account** (for deployment to Streamlit Cloud)
+- **Groq API key** ([Get free key](https://console.groq.com))
+- **Supabase account** ([Sign up free](https://supabase.com))
 - **Gmail account** with:
   - Two-Factor Authentication (2FA) enabled
   - App password generated ([Instructions](#gmail-setup))
@@ -153,195 +158,85 @@ Before you begin, ensure you have:
 
 ### Installation
 
-#### 1️⃣ Clone the Repository
+#### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/email-automation-system.git
+git clone https://github.com/donilp20/email-automation-system.git
 cd email-automation-system
 ```
 
-#### 2️⃣ Install and Configure Ollama
+#### 2. Set Up Supabase
+
+1. Go to [supabase.com](https://supabase.com) and create a new project
+2. Once created, navigate to **Settings → API**
+3. Copy your:
+   - **Project URL** (e.g., `https://xxxxx.supabase.co`)
+   - **anon/public key** (long JWT token)
+
+4. Run this SQL in the Supabase SQL Editor:
+
+```sql
+-- Create credentials table
+CREATE TABLE IF NOT EXISTS credentials (
+    id SERIAL PRIMARY KEY,
+    user_email TEXT UNIQUE NOT NULL,
+    encrypted_email TEXT NOT NULL,
+    encrypted_password TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create preferences table
+CREATE TABLE IF NOT EXISTS preferences (
+    id SERIAL PRIMARY KEY,
+    user_email TEXT UNIQUE NOT NULL,
+    preferences JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE credentials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE preferences ENABLE ROW LEVEL SECURITY;
+
+-- Create policies (allow all for testing - restrict in production)
+CREATE POLICY "Allow all operations" ON credentials FOR ALL USING (true);
+CREATE POLICY "Allow all operations" ON preferences FOR ALL USING (true);
+```
+
+#### 3. Get Groq API Key
+
+1. Visit [console.groq.com](https://console.groq.com)
+2. Sign up / Log in
+3. Navigate to **API Keys**
+4. Click **Create API Key**
+5. Copy the key (starts with `gsk_`)
+
+#### 4. Generate Encryption Key
 
 ```bash
-# Pull the Llama 3.1 8B model
-ollama pull llama3.1:8b
-
-# Configure Ollama to accept Docker connections
-export OLLAMA_HOST=0.0.0.0:11434
-
-# Start Ollama server (keep this terminal running)
-ollama serve
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 ```
 
-**Verify Ollama is Running:**
-```bash
-curl http://localhost:11434/api/tags
+Copy the output (e.g., `ohOP82L6alQ39D-83Ydkll3NdaF5toCjJL1HF7gx7Z8=`)
+
+#### 5. Configure Local Secrets
+
+Create `.streamlit/secrets.toml`:
+
+```toml
+# Supabase Configuration
+SUPABASE_URL = "https://xxxxx.supabase.co"
+SUPABASE_KEY = "your-supabase-anon-key"
+
+# Groq API Configuration
+GROQ_API_KEY = "gsk_xxxxxxxxxxxxx"
+
+# Encryption Key
+ENCRYPTION_KEY = "your-fernet-encryption-key"
 ```
 
-Expected output: JSON listing `llama3.1:8b`
-
-#### 3️⃣ Build and Launch the Application
-
-```bash
-# Build Docker images
-docker-compose build
-
-# Start containers in detached mode
-docker-compose up -d
-
-# View logs (optional)
-docker logs -f task-report-automation
-```
-
-**Success indicator:** You should see:
-```
-Ollama connected: llama3.1:8b at http://host.docker.internal:11434
-```
-
-#### 4️⃣ Access the Application
-
-Open your browser and navigate to:
-```
-http://localhost:8501
-```
-
----
-
-## 🔐 Gmail Setup
-
-### Creating an App Password
-
-Since Gmail blocks direct password authentication on 2FA-enabled accounts, you must generate an app password:
-
-1. Visit [Google App Passwords](https://myaccount.google.com/apppasswords)
-2. Sign in and verify 2FA
-3. Under **"Select app"**, choose **"Other (Custom name)"**
-4. Enter: `Task Report Automation`
-5. Click **"Generate"**
-6. Copy the **16-character password** (no spaces needed in the app)
-
-⚠️ **Security Note:** Store this password securely. It grants full email sending access.
-
----
-
-## 📖 Usage Guide
-
-### Step 1: Configure Gmail Credentials
-
-In the **Streamlit sidebar**:
-1. Enter your Gmail address (e.g., `your.email@gmail.com`)
-2. Paste your 16-character app password
-3. Click **"Save"**
-
-✅ The sidebar will confirm: *"Gmail credentials configured"*
-
-### Step 2: Compose Your Work Log
-
-**Option A:** Use a template
-- Select from the **"Select Template"** dropdown
-- Pre-filled templates demonstrate proper formatting
-
-**Option B:** Write your own
-```
-Send to: manager@techcorp.com
-
-Today's tasks:
-- Fixed critical navigation bug in EasyCatering mobile app (3 hours)
-- Implemented restaurant analytics dashboard feature
-- Attended sprint planning meeting and code review session
-- Started user authentication module development
-```
-
-**Formatting Tips:**
-- **Recipient**: Include `Send to: email@example.com` on its own line
-- **Tasks**: Use bullets (`-`), asterisks (`*`), or numbers (`1.`)
-- **Headers**: Optional headers like "Today's tasks:", "Completed:", "In progress:"
-
-### Step 3: Generate and Send
-
-**Two options:**
-
-1. **Generate & Send** (recommended)
-   - Parses input → Generates email → Sends immediately → Shows confirmation
-
-2. **Preview Only**
-   - Generates email but **does not send**
-   - Useful for reviewing format and content
-
-### Step 4: Review Output
-
-The app displays:
-- ✉️ **To:** Recipient email
-- 📋 **Subject:** "Daily Task Report - [Date]"
-- 🔢 **Tasks Detected:** Count of parsed tasks
-- 🤖 **Generation Method:** LLM or Fallback
-- 👁️ **HTML Preview:** Full email rendering
-
-If satisfied, emails send instantly via Gmail SMTP.
-
----
-
-## 🧪 Example Scenarios
-
-### Scenario 1: Standard Daily Update
-
-**Input:**
-```
-Send to: sarah.manager@company.com
-
-Completed today:
-- Resolved API authentication bug (Issue #234)
-- Code review for frontend team (3 PRs)
-- Updated documentation for new endpoints
-
-In progress:
-- Database migration planning
-```
-
-**Output:** Professional HTML email with structured sections, proper greeting, and formal tone.
-
----
-
-### Scenario 2: Multi-Project Report
-
-**Input:**
-```
-To: team-lead@startup.io
-
-Project Alpha:
-- Deployed v2.1.0 to staging environment
-- Fixed payment gateway integration
-
-Project Beta:
-- Completed user interview analysis
-- Started wireframe designs for mobile app
-```
-
-**Output:** Categorized email with project headers, maintaining context and clarity.
-
----
-
-## 🔧 Configuration
-
-### Environment Variables
-
-The application is configured via environment variables in `docker-compose.yml`:
-
-```yaml
-environment:
-  - OLLAMA_HOST=http://host.docker.internal:11434
-  - OLLAMA_MODEL=llama3.1:8b
-  - SMTP_HOST=smtp.gmail.com
-  - SMTP_PORT=587
-```
-
-**Customization:**
-- **OLLAMA_MODEL**: Change to any Ollama-supported model
-- **SMTP_HOST/PORT**: Use different email providers (e.g., Outlook: `smtp-mail.outlook.com:587`)
-
-### Running Without Docker (Local Development)
-
-If you prefer running directly on your host machine:
+#### 6. Install Dependencies and Run Locally
 
 ```bash
 # Create virtual environment
@@ -351,129 +246,320 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Set environment variables
-export OLLAMA_HOST=http://127.0.0.1:11434
-export OLLAMA_MODEL=llama3.1:8b
-
-# Ensure Ollama is running
-ollama serve  # In separate terminal
-
 # Launch app
 streamlit run app/app.py
 ```
 
----
-
-## 🧩 Core Modules
-
-### 1. `prompt_parser.py`
-
-**Purpose:** Extracts structured data from natural language input.
-
-**Key Functions:**
-- `extract_recipient_email(text)` → Finds first valid email address
-- `extract_tasks(text)` → Identifies bullet points, numbered items, and task headers
-
-**Logic:**
-- Regex patterns for email validation
-- Heuristic detection of task markers (`-`, `*`, `1.`)
-- Header recognition ("Today's tasks", "Completed", etc.)
+**Success indicator:** App opens at `http://localhost:8501`
 
 ---
 
-### 2. `report_generator.py`
+## Cloud Deployment
 
-**Purpose:** Generates professional HTML emails using LLM or fallback template.
+### Deploy to Streamlit Community Cloud
 
-**Workflow:**
-1. Connect to Ollama via LangChain
-2. Construct prompt with:
-   - Manager name
-   - Current date
-   - Sender name
-   - Selected tone (formal/neutral/friendly)
-   - Task list
-3. Invoke LLM (Llama 3.1 8B)
-4. Clean output:
-   - Remove code fences (` ```html `)
-   - Validate HTML structure
-5. On failure: Use deterministic HTML template
+#### 1. Push to GitHub
 
-**Fallback Template:**
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        .task { margin: 10px 0; }
-    </style>
-</head>
-<body>
-    <h2>Daily Task Report</h2>
-    <p>Dear [Manager],</p>
-    <ul>
-        <!-- Task list -->
-    </ul>
-    <p>Best regards,<br>[Your Name]</p>
-</body>
-</html>
+```bash
+# Initialize git (if not already)
+git init
+
+# Add all files (secrets.toml is already in .gitignore)
+git add .
+git commit -m "Cloud-ready email automation system"
+
+# Add remote and push
+git remote add origin https://github.com/YOUR_USERNAME/email-automation-system.git
+git push -u origin main
 ```
 
+#### 2. Deploy on Streamlit Cloud
+
+1. Go to [share.streamlit.io](https://share.streamlit.io)
+2. Click **"New app"**
+3. Select your repository: `YOUR_USERNAME/email-automation-system`
+4. Set **Main file path**: `app/app.py`
+5. Click **"Advanced settings"**
+6. In **Secrets**, paste your secrets in TOML format:
+
+```toml
+SUPABASE_URL = "https://xxxxx.supabase.co"
+SUPABASE_KEY = "your-supabase-anon-key"
+GROQ_API_KEY = "gsk_xxxxxxxxxxxxx"
+ENCRYPTION_KEY = "your-fernet-encryption-key"
+```
+
+7. Click **"Deploy!"**
+
+#### 3. Access Your App
+
+Your app will be live at:
+```
+https://YOUR-APP-NAME.streamlit.app
+```
+
+**Auto-Deployment:** Any push to `main` branch automatically redeploys your app.
+
 ---
 
-### 3. `email_sender.py`
+## Gmail Setup
 
-**Purpose:** Sends emails via Gmail SMTP with TLS encryption.
+### Creating an App Password
+
+Since Gmail blocks direct password authentication on 2FA-enabled accounts, you must generate an app password:
+
+1. Visit [Google App Passwords](https://myaccount.google.com/apppasswords)
+2. Sign in and verify 2FA
+3. Under **"Select app"**, choose **"Other (Custom name)"**
+4. Enter: `Email Automation System`
+5. Click **"Generate"**
+6. Copy the **16-character password** (remove spaces when entering in app)
+
+**Security Note:** Store this password securely. It grants full email sending access.
+
+---
+
+## Usage Guide
+
+### Step 1: Login with Gmail Credentials
+
+In the **Streamlit sidebar**:
+1. Expand **"Gmail Credentials"**
+2. Enter your Gmail address (e.g., `your.email@gmail.com`)
+3. Paste your 16-character app password (no spaces)
+4. Click **"Login"**
+
+The app will:
+- Test SMTP connection
+- Encrypt and save credentials to Supabase
+- Show **"Logged in as: your.email@gmail.com"**
+
+### Step 2: Set Preferences (Optional)
+
+In the **sidebar → Preferences**:
+- **Sender name**: Your name for email signatures
+- **Default recipient**: Auto-fills recipient field
+- **Default subject**: Auto-fills subject field
+- **CC/BCC emails**: Comma-separated email addresses
+
+Click **"Save"** to persist across sessions.
+
+### Step 3: Compose Your Work Log
+
+**Option A:** Use a template
+- Select from **"Select template"** dropdown:
+  - Software Developers
+  - Frontend Developer
+  - Social Media Marketing
+
+**Option B:** Write your own
+```
+Today's tasks:
+- Fixed critical navigation bug in EasyCatering mobile app (3 hours)
+- Implemented restaurant analytics dashboard feature
+- Attended sprint planning meeting and code review session
+- Started user authentication module development
+```
+
+**Formatting Tips:**
+- Use bullets (`-`), asterisks (`*`), or numbers (`1.`)
+- Add headers like "Today's tasks:", "Completed:", "In progress:"
+- Natural language is fine — the parser handles it
+
+### Step 4: Choose Email Tone
+
+Select from dropdown:
+- **Formal**: Professional corporate tone
+- **Neutral**: Balanced, conversational
+- **Friendly**: Casual and warm
+
+### Step 5: Generate and Send
+
+**Three options:**
+
+1. **Send** (Direct send, no AI)
+   - Sends your tasks as-is in HTML format
+   - Fastest option
+
+2. **Refine** (AI + Edit)
+   - Generates AI-polished email
+   - Shows editable preview
+   - Edit before sending
+
+3. **Refine & Send** (AI + Instant send)
+   - Generates and sends immediately
+   - Shows preview before delivery
+
+### Step 6: Edit Refined Emails (if using Refine)
+
+After clicking **"Refine"**:
+1. AI-generated email appears in editable text area
+2. Make any changes you want
+3. Click **"Send Refined Email"**
+4. Or click **"Refine Again"** for new generation
+5. Or click **"🔙 Start Over"** to write new tasks
+
+---
+
+## Example Scenarios
+
+### Scenario 1: Quick Daily Update
+
+**Input:**
+```
+Today's tasks:
+- Fixed login bug
+- Code review for 3 PRs
+- Updated API documentation
+```
+
+**Action:** Click **"Send"**
+
+**Output:** Clean HTML email sent in 2 seconds
+
+---
+
+### Scenario 2: AI-Refined Reports
+
+**Input:**
+```
+- worked on easycater app navigation bug 3hrs
+- dashboard analytics new feature done
+- sprint meeting attended
+- auth module started
+```
+
+**Action:** Click **"Refine"** → Select **"Formal"** tone
+
+**Output:** AI transforms into:
+```
+Dear [Manager],
+
+I am writing to provide an update on today's accomplishments:
+
+1. Navigation Bug Resolution (3 hours)
+   Successfully debugged and resolved a critical navigation issue 
+   in the EasyCater mobile application...
+
+2. Restaurant Analytics Dashboard
+   Completed implementation of the new analytics feature...
+
+[Professional closing]
+```
+
+**Edit** if needed, then **"Send"**
+
+---
+
+## Core Modules
+
+### 1. `credential_storage.py`
+
+**Purpose:** Securely store and retrieve Gmail credentials in Supabase.
+
+**Key Functions:**
+- `save_credentials(user_email, email, app_password)` → Encrypts and saves to Supabase
+- `load_credentials(user_email)` → Retrieves and decrypts credentials
+- Uses **Fernet encryption** (AES-128) for credential protection
+
+**Security:**
+- Credentials encrypted before database storage
+- Encryption key stored in Streamlit secrets (not in database)
+- Row-level security policies in Supabase
+
+---
+
+### 2. `preferences.py`
+
+**Purpose:** Manage user preferences in Supabase.
+
+**Stored Preferences:**
+- Email tone (formal/neutral/friendly)
+- Sender name
+- Default recipient
+- Default subject
+- CC/BCC emails
+
+**Functions:**
+- `save_preferences(user_email, prefs_dict)` → Saves as JSONB
+- `load_preferences(user_email)` → Retrieves user preferences
+- `clear_preferences(user_email)` → Resets to defaults
+
+---
+
+### 3. `report_generator.py`
+
+**Purpose:** Generate professional HTML emails using Groq API.
+
+**Workflow:**
+1. Construct prompt with:
+   - Manager name (extracted from recipient email)
+   - Current date
+   - Sender name
+   - Selected tone
+   - Task list
+2. Call Groq API (Llama 3.1 8B Instant)
+3. Parse and clean HTML output
+4. On failure: Use fallback template
+
+**Groq API Benefits:**
+- **Speed**: 500+ tokens/second (10x faster than Ollama)
+- **No infrastructure**: Cloud-hosted
+- **Free tier**: 30 requests/minute
+- **Reliability**: 99.9% uptime SLA
+
+---
+
+### 4. `email_sender.py`
+
+**Purpose:** Send emails via Gmail SMTP with SSL/TLS encryption.
 
 **Process:**
-1. Connect to `smtp.gmail.com:587`
-2. Start TLS encryption
-3. Authenticate using Gmail + app password
-4. Build MIME multipart message:
+1. Connect to `smtp.gmail.com:465` (SSL)
+2. Authenticate using Gmail + app password
+3. Build MIME multipart message:
    - Plain text version (for accessibility)
    - HTML version (for styling)
-5. Send and log results
+4. Send with CC/BCC support
+5. Log results
 
 **Error Handling:**
-- Catches SMTP authentication errors
-- Logs connection issues
-- Provides user-friendly error messages
+- SMTP authentication errors
+- Connection timeouts
+- Invalid recipient addresses
+- User-friendly error messages
 
 ---
 
-### 4. `email_auth.py`
+### 5. `prompt_parser.py`
 
-**Purpose:** Manages Gmail credentials securely in session state.
+**Purpose:** Extract structured tasks from natural language input.
 
-**Features:**
-- Stores credentials in Streamlit's `session_state` (memory only)
-- Hashes app password for integrity verification
-- **Never writes to disk**
-- Credentials persist only during active session
+**Key Functions:**
+- `extract_tasks(text)` → Identifies bullets, numbers, and task markers
+
+**Logic:**
+- Regex patterns for task detection
+- Header recognition ("Today's tasks", "Completed", "In progress")
+- Filters out empty lines and headers
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
-### Issue: "Could not connect to Ollama"
+### Issue: "Failed to connect to Groq API"
 
-**Symptoms:** Logs show LLM connection failure, app uses fallback generation.
+**Symptoms:** App shows fallback generation, no AI refinement.
 
 **Solutions:**
-1. Verify Ollama is running:
+1. Verify Groq API key in secrets:
    ```bash
-   curl http://localhost:11434/api/tags
+   # Check secrets.toml locally
+   cat .streamlit/secrets.toml
    ```
-2. Check `OLLAMA_HOST` environment variable:
-   ```bash
-   export OLLAMA_HOST=0.0.0.0:11434
-   ollama serve
-   ```
-3. Test Docker container can reach host:
-   ```bash
-   docker exec -it task-report-automation curl http://host.docker.internal:11434/api/tags
-   ```
+2. Check API key validity at [console.groq.com](https://console.groq.com)
+3. Verify you're not exceeding rate limits (30 req/min free tier)
+4. Check Streamlit Cloud logs for specific error
 
 ---
 
@@ -486,6 +572,19 @@ streamlit run app/app.py
 2. Verify you're using **app password**, not regular password
 3. Enter app password **without spaces**
 4. Ensure "From" email matches account that generated app password
+5. Regenerate app password if old one expired
+
+---
+
+### Issue: Credentials Not Persisting
+
+**Symptoms:** Have to re-login every time.
+
+**Solutions:**
+1. Verify Supabase credentials in secrets
+2. Check Supabase SQL tables exist (see Installation Step 2)
+3. Verify RLS policies are set correctly
+4. Check Streamlit Cloud logs for database errors
 
 ---
 
@@ -495,123 +594,101 @@ streamlit run app/app.py
 1. Check recipient's **spam folder**
 2. Verify recipient email address is correct
 3. Test with different recipient (e.g., your own secondary email)
-4. Review Gmail's "Sent" folder to confirm delivery
+4. Check Streamlit logs for SMTP errors
+5. Verify Gmail account isn't rate-limited
 
 ---
 
-### Issue: Docker Container Fails to Start
+## Security Considerations
 
-**Solutions:**
-1. Check Docker Desktop is running
-2. Verify port 8501 is not in use:
-   ```bash
-   lsof -i :8501
-   ```
-3. Review logs:
-   ```bash
-   docker logs task-report-automation
-   ```
-4. Rebuild containers:
-   ```bash
-   docker-compose down
-   docker-compose build --no-cache
-   docker-compose up -d
-   ```
+### Cloud Security
 
----
+- **Credential Encryption**: Fernet (AES-128) encryption for all credentials
+- **Environment Isolation**: Secrets stored in Streamlit Cloud, never in code
+- **Row-Level Security**: Supabase RLS policies protect user data
+- **TLS/SSL**: All SMTP connections encrypted (port 465)
 
-## 🔒 Security Considerations
+### Data Privacy
 
-### ✅ Privacy-First Design
+- **No AI Training**: Groq does not train on your data
+- **Ephemeral Processing**: Task logs not stored long-term
+- **User Isolation**: Each user's credentials isolated in database
+- **Audit Trail**: Timestamp tracking for credential access
 
-- **Local LLM**: All AI processing happens on your machine via Ollama
-- **No External APIs**: Zero data transmission to third-party AI providers
-- **In-Memory Credentials**: Gmail passwords stored only in session state
-- **No Disk Persistence**: Credentials never written to configuration files
+### Best Practices
 
-### ✅ Email Security
-
-- **TLS Encryption**: All SMTP connections use port 587 with StartTLS
-- **App Passwords**: Gmail authentication isolated from main account password
-- **Credential Isolation**: Each user session maintains separate credentials
-
-### ⚠️ Best Practices
-
-1. **Keep repository private** if it contains test logs or real email addresses
-2. **Rotate app passwords** periodically (every 90 days recommended)
-3. **Review Docker logs** for sensitive information before sharing
-4. **Use `.gitignore`** to exclude `.env` files and credential stores
+1. **Rotate app passwords** every 90 days
+2. **Monitor Supabase logs** for unauthorized access attempts
+3. **Review Streamlit Cloud logs** for errors
+4. **Keep secrets.toml private** (already in `.gitignore`)
+5. **Use strong encryption keys** (generated via Fernet.generate_key())
 
 ---
 
-## 🚀 Extending the System
-
-### Suggested Enhancements
-
-#### 1. Multi-User Support
-- Add user authentication (e.g., OAuth, JWT)
-- Store credentials in encrypted database
-- Implement role-based access control
-
-#### 2. Scheduling and Automation
-- Integrate with cron jobs or Celery for scheduled sends
-- Add recurring report templates (daily, weekly, monthly)
-- Implement reminder notifications
-
-#### 3. Analytics Dashboard
-- Track sent reports (count, timestamps, recipients)
-- Monitor LLM vs. fallback generation rates
-- Display parser accuracy metrics
-
-#### 4. Multi-Provider Email Support
-- Add Outlook/Office 365 SMTP
-- Support custom SMTP servers
-- Implement email provider auto-detection
-
-#### 5. Advanced Parser Evaluation
-- Build synthetic dataset generator
-- Implement parser accuracy benchmarks
-- Add support for multi-language task descriptions
-
----
-
-## 🧪 Testing
-
-### Parser Evaluation
-
-Evaluate prompt parsing accuracy:
-
-```bash
-python scripts/evaluate_parser.py
-```
-
-**Output:** JSON report with precision, recall, and F1 scores for email extraction and task detection.
-
-### Synthetic Dataset Generation
-
-Generate test data for parser training:
-
-```bash
-python scripts/generate_dataset.py --samples 100
-```
-
-**Output:** `app/data/synthetic_dataset.csv` with diverse task report examples.
-
----
-
-## 📊 Performance Metrics
+## Performance Metrics
 
 | Metric | Value | Notes |
 |--------|-------|-------|
-| **LLM Response Time** | 2-5 seconds | Depends on hardware (CPU/GPU) |
+| **Groq API Response** | 1-2 seconds | 500+ tokens/second throughput |
 | **Fallback Generation** | <100ms | Template-based, instant |
 | **Email Delivery** | 1-3 seconds | Gmail SMTP latency |
-| **Parser Accuracy** | 95%+ | Email extraction on clean input |
-| **Docker Image Size** | ~1.2GB | Includes Python 3.11 + dependencies |
+| **Database Query** | <200ms | Supabase PostgreSQL (global CDN) |
+| **Cold Start** | 3-5 seconds | Streamlit Cloud spin-up time |
+| **Concurrent Users** | Unlimited | Auto-scaling by Streamlit Cloud |
 
 ---
 
-## 🤝 Contributing
+## API Limits
+
+### Groq
+- **Requests**: 30 per minute
+- **Tokens**: 30,000 per minute
+- **Models**: Llama 3.1 8B Instant included
+
+### Supabase
+- **Database**: 500MB storage
+- **Bandwidth**: 5GB/month
+- **Rows**: Unlimited (within storage limit)
+
+### Streamlit Cloud
+- **Apps**: Unlimited public apps
+- **Resources**: 1GB RAM per app
+- **Bandwidth**: Unlimited
+
+---
+
+## Extending the System
+
+### Suggested Enhancements
+
+#### 1. Multi-Language Support
+- Detect user language
+- Generate emails in Spanish, French, etc.
+- Use Groq's multilingual models
+
+#### 2. Email History Dashboard
+- Store sent emails in Supabase
+- View past reports
+- Track sent/failed counts
+
+#### 3. Team Collaboration
+- Multi-user workspaces
+- Shared templates
+- Team analytics
+
+#### 4. Mobile App
+- React Native wrapper
+- Push notifications
+- Voice-to-text task input
+
+#### 5. Integration APIs
+- Slack webhook for notifications
+- JIRA task import
+- GitHub commit summaries
+
+---
+
+## Contributing
 
 Contributions are welcome! To contribute:
 
@@ -632,28 +709,29 @@ Contributions are welcome! To contribute:
 
 ### Contribution Guidelines
 
-- Follow PEP 8 style guidelines for Python code
-- Add unit tests for new features
-- Update documentation (README, docstrings)
-- Ensure Docker build succeeds before submitting PR
+- Follow PEP 8 style guidelines
+- Add type hints for new functions
+- Update documentation
+- Test locally before submitting PR
+- Ensure cloud deployment works
 
 ---
 
-## 📜 License
+## License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License**.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 ### Technologies
 
-- **[Ollama](https://ollama.ai/)** - Local LLM runtime
+- **[Groq](https://groq.com/)** - Ultra-fast AI inference
 - **[Llama 3.1 8B](https://ai.meta.com/llama/)** - Meta's open-source language model
 - **[Streamlit](https://streamlit.io/)** - Python web framework
-- **[LangChain](https://langchain.com/)** - LLM orchestration library
-- **[Docker](https://www.docker.com/)** - Containerization platform
+- **[Supabase](https://supabase.com/)** - Open-source Firebase alternative
+- **[Fernet](https://cryptography.io/)** - Symmetric encryption library
 
 ### Inspiration
 
@@ -661,31 +739,45 @@ Built to solve the daily pain point of manually formatting work reports for busy
 
 ---
 
-## 📞 Contact & Support
+## Contact & Support
 
-- **Issues:** [GitHub Issues](https://github.com/your-username/email-automation-system/issues)
-- **Email:** your.email@example.com
-- **LinkedIn:** [Your Profile](https://linkedin.com/in/yourprofile)
+- **Issues:** [GitHub Issues](https://github.com/donilp20/email-automation-system/issues)
+- **Email:** [donilpatelwork@gmail.com](mailto:donilpatelwork@gmail.com)
+- **LinkedIn:** [Donil Patel](https://linkedin.com/in/donilpatel)
 
 ---
 
-## 🗓️ Changelog
+## Changelog
+
+### v2.0.0 (2026-02-14) - Cloud-Native Rewrite
+- **Major Changes:**
+  - Migrated from Ollama (local) to Groq API (cloud)
+  - Replaced file-based storage with Supabase PostgreSQL
+  - Added Fernet encryption for credentials
+  - Implemented user preferences system
+  - Added editable AI-refined emails
+  - Deployed to Streamlit Community Cloud
+- **Security:**
+  - End-to-end credential encryption
+  - Row-level security in Supabase
+  - SSL/TLS for all connections
+- **Performance:**
+  - 10x faster AI generation (Groq vs Ollama)
+  - Global CDN for database (Supabase)
+  - Auto-scaling deployment
 
 ### v1.0.0 (2026-02-04)
-- ✨ Initial release
-- 🤖 Local LLM integration via Ollama
-- 📧 Gmail SMTP support with app passwords
-- 🐳 Full Docker containerization
-- 📝 Smart prompt parsing with task extraction
-- 🎨 Multiple email tone options
-- 🔒 Secure credential management
+- Initial release
+- Local LLM integration via Ollama
+- Docker-based deployment
+- Basic task parsing and email sending
 
 ---
 
 <div align="center">
 
-**Made with ❤️ by [Your Name]**
+**⭐ If this project helped you, consider giving it a star on GitHub! ⭐**
 
-If this project helped you, consider giving it a ⭐️ on GitHub!
+[Live Demo](https://email-automation-donil.streamlit.app) • [Documentation](https://github.com/donilp20/email-automation-system) • [Report Bug](https://github.com/donilp20/email-automation-system/issues)
 
 </div>

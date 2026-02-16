@@ -486,7 +486,7 @@ def main():
     sidebar_credentials()
     
     # Main header
-    st.markdown('<h1 class="main-header">Email Automation System</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">Email Automation System v2</h1>', unsafe_allow_html=True)
     st.markdown(
         '<p class="sub-header">Transform your work log into professional email reports, instantly.</p>',
         unsafe_allow_html=True

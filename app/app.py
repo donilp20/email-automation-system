@@ -7,7 +7,7 @@ from modules import credential_storage, preferences, report_generator, email_sen
 from modules import prompt_parser
 
 st.set_page_config(
-    page_title="Email Automation System",
+    page_title="Email Automation System  v2 - TEST",
     layout="centered",
     initial_sidebar_state="expanded",
 )

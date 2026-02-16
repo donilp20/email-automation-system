@@ -72,6 +72,14 @@ def apply_custom_css():
             gap: 10px;
         }
         
+        /* Make selectbox non-editable - disable input field */
+        div[data-baseweb="select"] input {
+            pointer-events: none !important;
+            cursor: pointer !important;
+            caret-color: transparent !important;
+        }
+        
+        /* Make the entire selectbox clickable */
         div[data-baseweb="select"] {
             cursor: pointer !important;
         }
@@ -80,14 +88,17 @@ def apply_custom_css():
             cursor: pointer !important;
         }
         
+        /* Style dropdown options */
         div[data-baseweb="popover"] li {
             cursor: pointer !important;
         }
         
+        /* Additional selectbox styling */
         .stSelectbox > div > div {
             cursor: pointer !important;
         }
         
+        /* Dropdown arrow animation */
         div[data-baseweb="select"] svg {
             transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             transform-origin: center;
@@ -153,12 +164,19 @@ def sidebar_credentials():
             )
             
             # App password input
+            col_label, col_help = st.columns([0.85, 0.15])
+
+            with col_label:
+                st.markdown("**App password**")
+            with col_help:
+                st.markdown("", help="Generate at: https://myaccount.google.com/apppasswords")
+
             app_password = st.text_input(
                 "App password",
                 type="password",
                 placeholder="16-character app password",
                 key="app_password_input",
-                help="Generate at: https://myaccount.google.com/apppasswords",
+                label_visibility="collapsed"
             )
             
             # Login
@@ -312,7 +330,12 @@ def regenerate_refined_email(current_user, creds, user_prefs, stored_recipient, 
             st.stop()
         
         tone = st.session_state.get("email_tone", "formal")
-        sender_name = user_prefs.get("sender_name", "Donil")
+
+        sender_name = user_prefs.get("sender_name", "")
+
+        if not sender_name:  # Fallback if empty
+            sender_name = "Team Member"
+
         manager_name = extract_manager_name_from_email(stored_recipient)
         
         report = report_generator.generate_email_report(
@@ -818,7 +841,12 @@ def handle_refine(current_user, creds, user_prefs, recipient_email, subject_inpu
             st.stop()
         
         tone = st.session_state.get("email_tone", "formal")
-        sender_name = user_prefs.get("sender_name", "Donil")
+
+        sender_name = user_prefs.get("sender_name", "")
+
+        if not sender_name:  # Fallback if empty
+            sender_name = "Team Member"
+
         manager_name = extract_manager_name_from_email(recipient_email)
         
         report = report_generator.generate_email_report(
@@ -853,7 +881,12 @@ def handle_refine_and_send(current_user, creds, user_prefs, recipient_email, sub
             st.stop()
         
         tone = st.session_state.get("email_tone", "formal")
-        sender_name = user_prefs.get("sender_name", "Donil")
+        
+        sender_name = user_prefs.get("sender_name", "")
+
+        if not sender_name:  # Fallback if empty
+            sender_name = "Team Member"
+
         manager_name = extract_manager_name_from_email(recipient_email)
         
         report = report_generator.generate_email_report(

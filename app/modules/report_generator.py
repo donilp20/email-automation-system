@@ -66,7 +66,7 @@ def generate_email_report(
     manager_name: str = "Manager",
     report_date: Optional[date] = None,
     tone: str = "formal",
-    sender_name: str = "Donil",
+    sender_name: str = "",
 ) -> EmailReport:
     """
     Generate complete email report using Groq API.
@@ -84,6 +84,9 @@ def generate_email_report(
     if not tasks:
         raise ValueError("No tasks provided")
     
+    if not sender_name or not sender_name.strip():
+        sender_name = "Team Member"
+
     # Clean tasks
     cleaned_tasks = []
     for task in tasks:
@@ -185,7 +188,7 @@ class ReportGenerator:
         manager_name: str = "Manager",
         report_date: Optional[date] = None,
         tone: str = "formal",
-        sender_name: str = "Donil",
+        sender_name: str = "",
     ) -> EmailReport:
         return generate_email_report(
             tasks=tasks,

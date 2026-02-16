@@ -7,7 +7,7 @@ from modules import credential_storage, preferences, report_generator, email_sen
 from modules import prompt_parser
 
 st.set_page_config(
-    page_title="Email Automation System  v2 - TEST",
+    page_title="Email Automation System",
     layout="centered",
     initial_sidebar_state="expanded",
 )
@@ -163,20 +163,18 @@ def sidebar_credentials():
                 key="gmail_input",
             )
             
-            # App password input
-            col_label, col_help = st.columns([0.85, 0.15])
+            st.markdown(
+                "**App password**",
+                help="Generate an app password at https://myaccount.google.com/apppasswords",
+            )
 
-            with col_label:
-                st.markdown("**App password**")
-            with col_help:
-                st.markdown("", help="Generate at: https://myaccount.google.com/apppasswords")
-
+            # App password input without its own help
             app_password = st.text_input(
                 "App password",
                 type="password",
                 placeholder="16-character app password",
                 key="app_password_input",
-                label_visibility="collapsed"
+                label_visibility="collapsed",
             )
             
             # Login
@@ -226,7 +224,7 @@ def sidebar_credentials():
                 placeholder="Your name",
                 key="sender_name",
             )
-            
+
             # Default Recipient
             st.markdown("**Default recipient email**", help="Auto-fills the recipient field")
             default_recipient = st.text_input(
@@ -301,29 +299,65 @@ def sidebar_credentials():
 
 
 def extract_manager_name_from_email(email: str) -> str:
-    """Try to extract first name from email address."""
+    """
+    Extract recipient's name from email address with enhanced pattern matching.
+    
+    Examples:
+        john.doe@company.com → John
+        jane_smith@company.com → Jane
+        robert.j.williams@company.com → Robert
+        mjordan23@company.com → Mjordan (fallback)
+        j.smith@company.com → J (if too short, use "Manager")
+    """
     try:
-        local_part = email.split("@")[0]
-        if "." in local_part:
-            first = local_part.split(".")[0]
-            return first.capitalize()
-        elif "_" in local_part:
-            first = local_part.split("_")[0]
-            return first.capitalize()
-        else:
-            return local_part.capitalize()
-    except:
+        # Get local part (before @)
+        local_part = email.split("@")[0].lower()
+        
+        # Remove common number suffixes (john.doe123 → john.doe)
+        import re
+        local_part = re.sub(r'\d+$', '', local_part)
+        
+        # Split by common separators (. _ -)
+        parts = re.split(r'[._-]', local_part)
+        
+        # Filter out empty strings and very short parts
+        parts = [p for p in parts if len(p) > 0]
+        
+        if not parts:
+            return "Manager"
+        
+        # Take the first meaningful part (usually first name)
+        first_part = parts[0]
+        
+        # If first part is too short (likely initial), try second part
+        if len(first_part) <= 1 and len(parts) > 1:
+            first_part = parts[1]
+        
+        # If still too short, use generic
+        if len(first_part) <= 1:
+            return "Manager"
+        
+        # Capitalize and return
+        return first_part.capitalize()
+    
+    except Exception as e:
+        # Fallback to generic greeting
         return "Manager"
 
 
 def regenerate_refined_email(current_user, creds, user_prefs, stored_recipient, stored_subject, stored_prompt):
     """Regenerate refined email from stored prompt."""
+
+    original_prompt = st.session_state.get("original_prompt", stored_prompt)
+    original_subject = st.session_state.get("original_subject", stored_subject)
+    original_recipient = st.session_state.get("original_recipient", stored_recipient)
+
     # Clear current refined state
     st.session_state["show_refined"] = False
     st.session_state["refined_email_html"] = None
     
     with st.spinner("Re-refining with AI..."):
-        tasks = prompt_parser.extract_tasks(stored_prompt)
+        tasks = prompt_parser.extract_tasks(original_prompt)
         
         if not tasks:
             st.error("Could not extract any tasks.")
@@ -345,8 +379,8 @@ def regenerate_refined_email(current_user, creds, user_prefs, stored_recipient, 
             sender_name=sender_name,
         )
         
-        if stored_subject and stored_subject.strip():
-            final_subject = stored_subject.strip()
+        if original_subject and original_subject.strip():
+            final_subject = original_subject.strip()
         else:
             final_subject = report.subject
         
@@ -360,7 +394,7 @@ def regenerate_refined_email(current_user, creds, user_prefs, stored_recipient, 
 
 
 def html_to_plain_text(html_content: str) -> str:
-    """Convert HTML email to editable plain text format."""
+    """Convert HTML email to editable plain text format with proper spacing."""
     import re
     
     # Remove HTML tags but preserve structure
@@ -372,16 +406,26 @@ def html_to_plain_text(html_content: str) -> str:
     # Remove script tags
     text = re.sub(r'<script[^>]*>.*?</script>', '', text, flags=re.DOTALL)
     
+    # Replace </p> with single newline (not double)
+    text = re.sub(r'</p>\s*', '\n', text, flags=re.IGNORECASE)
+    text = re.sub(r'<p[^>]*>\s*', '', text, flags=re.IGNORECASE)
+    
     # Replace <br> with newlines
-    text = re.sub(r'<br\s*/?>', '\n', text, flags=re.IGNORECASE)
+    text = re.sub(r'<br\s*/?>\s*', '\n', text, flags=re.IGNORECASE)
     
-    # Replace list items with bullets
-    text = re.sub(r'<li[^>]*>', '• ', text, flags=re.IGNORECASE)
-    text = re.sub(r'</li>', '\n', text, flags=re.IGNORECASE)
+    # Handle headings - add single newline before and after
+    text = re.sub(r'</h[1-6]>\s*', '\n\n', text, flags=re.IGNORECASE)
+    text = re.sub(r'<h[1-6][^>]*>\s*', '\n', text, flags=re.IGNORECASE)
     
-    # Replace paragraph breaks
-    text = re.sub(r'</p>', '\n\n', text, flags=re.IGNORECASE)
-    text = re.sub(r'<p[^>]*>', '', text, flags=re.IGNORECASE)
+    # Handle list items - no extra spacing between items
+    text = re.sub(r'<li[^>]*>\s*', '• ', text, flags=re.IGNORECASE)
+    text = re.sub(r'</li>\s*', '\n', text, flags=re.IGNORECASE)
+    
+    # Handle list containers - add spacing before/after list
+    text = re.sub(r'<ul[^>]*>\s*', '\n', text, flags=re.IGNORECASE)
+    text = re.sub(r'</ul>\s*', '\n\n', text, flags=re.IGNORECASE)
+    text = re.sub(r'<ol[^>]*>\s*', '\n', text, flags=re.IGNORECASE)
+    text = re.sub(r'</ol>\s*', '\n\n', text, flags=re.IGNORECASE)
     
     # Remove remaining HTML tags
     text = re.sub(r'<[^>]+>', '', text)
@@ -392,9 +436,25 @@ def html_to_plain_text(html_content: str) -> str:
     text = text.replace('&lt;', '<')
     text = text.replace('&gt;', '>')
     text = text.replace('&quot;', '"')
+    text = text.replace('&#39;', "'")
     
-    # Clean up extra whitespace
-    text = re.sub(r'\n\s*\n\s*\n', '\n\n', text)
+    # Clean up excessive whitespace
+    # Remove lines with only whitespace
+    lines = text.split('\n')
+    cleaned_lines = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped:  # Only keep non-empty lines
+            cleaned_lines.append(stripped)
+        elif cleaned_lines and cleaned_lines[-1] != '':  # Allow ONE blank line for spacing
+            cleaned_lines.append('')
+    
+    text = '\n'.join(cleaned_lines)
+    
+    # Collapse multiple consecutive blank lines into one
+    text = re.sub(r'\n\n\n+', '\n\n', text)
+    
+    # Final trim
     text = text.strip()
     
     return text
@@ -468,16 +528,28 @@ def clear_form():
     st.session_state["form_cleared"] = True
     st.session_state["show_refined"] = False
     st.session_state["refined_email_html"] = None
+
+    # Clear refined states
     if "refined_subject" in st.session_state:
         del st.session_state["refined_subject"]
     if "refined_recipient" in st.session_state:
         del st.session_state["refined_recipient"]
+    
+    # Clear original locked states
     if "last_prompt" in st.session_state:
         del st.session_state["last_prompt"]
     if "last_subject" in st.session_state:
         del st.session_state["last_subject"]
     if "last_recipient" in st.session_state:
         del st.session_state["last_recipient"]
+    
+    # Clear original locked prompts
+    if "original_prompt" in st.session_state:
+        del st.session_state["original_prompt"]
+    if "original_subject" in st.session_state:
+        del st.session_state["original_subject"]
+    if "original_recipient" in st.session_state:
+        del st.session_state["original_recipient"]
 
 
 def main():
@@ -486,7 +558,7 @@ def main():
     sidebar_credentials()
     
     # Main header
-    st.markdown('<h1 class="main-header">Email Automation System v2</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">Email Automation System</h1>', unsafe_allow_html=True)
     st.markdown(
         '<p class="sub-header">Transform your work log into professional email reports, instantly.</p>',
         unsafe_allow_html=True
@@ -632,10 +704,90 @@ def main():
         label_visibility="collapsed"
     )
     
-    # Work log field OR Refined email field
+    # Work log field
+    st.markdown("**Your work log**", help="List your completed tasks")
+
+    if st.session_state.get("form_cleared"):
+        st.session_state["raw_prompt_value"] = ""
+        st.session_state["last_selected_template"] = "Custom"
+        st.session_state["form_cleared"] = False
+
+    # Text area with current value
+    raw_prompt = st.text_area(
+        "Your work log",
+        height=250,
+        value=st.session_state["raw_prompt_value"],
+        placeholder="Today's tasks:\n- Task 1\n- Task 2\n- Task 3",
+        key="raw_prompt_input",
+        label_visibility="collapsed",
+        disabled=st.session_state.get("show_refined", False),
+    )
+
+    # Only update session state when user actually types
+    if raw_prompt != st.session_state["raw_prompt_value"]:
+        st.session_state["raw_prompt_value"] = raw_prompt
+        
+        # If user manually edits and content differs from selected template, switch to Custom
+        if st.session_state["last_selected_template"] != "Custom":
+            template_content = example_templates.get(st.session_state["last_selected_template"], "")
+            if raw_prompt != template_content:
+                st.session_state["last_selected_template"] = "Custom"
+
+    # Action buttons
+    col1, col2, col3 = st.columns([1, 1, 1])
+
+    with col1:
+        send_button = st.button(
+            "Send",
+            use_container_width=True,
+            help="Send without AI refinement",
+            disabled=st.session_state.get("show_refined", False),
+        )
+
+    with col2:
+        refine_button = st.button(
+            "Refine",
+            use_container_width=True,
+            help="Generate AI-polished version (editable)",
+            disabled=st.session_state.get("show_refined", False),
+        )
+
+    with col3:
+        refine_and_send_button = st.button(
+            "Refine & Send",
+            type="primary",
+            use_container_width=True,
+            help="Generate and send immediately",
+            disabled=st.session_state.get("show_refined", False),
+        )
+
+    # Validate inputs (only if buttons are enabled)
+    if send_button or refine_button or refine_and_send_button:
+        if not recipient_email or not recipient_email.strip():
+            st.error("Please enter a recipient email address.")
+            st.stop()
+        
+        if not raw_prompt.strip():
+            st.error("Please enter your work log.")
+            st.stop()
+        
+        # Store inputs for potential re-refinement
+        st.session_state["last_prompt"] = raw_prompt
+        st.session_state["last_subject"] = subject_input
+        st.session_state["last_recipient"] = recipient_email
+
+    # Handle actions
+    if send_button:
+        handle_send(current_user, creds, user_prefs, recipient_email, subject_input, raw_prompt)
+    elif refine_button:
+        handle_refine(current_user, creds, user_prefs, recipient_email, subject_input, raw_prompt)
+    elif refine_and_send_button:
+        handle_refine_and_send(current_user, creds, user_prefs, recipient_email, subject_input, raw_prompt)
+
+    # Show refined email
     if st.session_state.get("show_refined"):
-        # Show refined email editor
-        st.markdown('<div class="refined-header">Refined Email</div>', unsafe_allow_html=True)
+        st.markdown("---")
+        st.markdown("### Refined Email")
         
         # Convert HTML to editable plain text
         plain_text = html_to_plain_text(st.session_state["refined_email_html"])
@@ -645,10 +797,9 @@ def main():
             value=plain_text,
             height=350,
             key="refined_email_editor",
-            label_visibility="collapsed"
+            label_visibility="collapsed",
+            help="Edit the AI-generated email before sending"
         )
-        
-        st.markdown('</div>', unsafe_allow_html=True)
         
         # Action buttons for refined email
         col1, col2, col3 = st.columns([2, 2, 1])
@@ -659,9 +810,9 @@ def main():
         
         with col2:
             if st.button("Refine Again", use_container_width=True):
-                stored_prompt = st.session_state.get("last_prompt", "")
-                stored_subject = st.session_state.get("last_subject", "")
-                stored_recipient = st.session_state.get("last_recipient", "")
+                stored_prompt = st.session_state.get("original_prompt", st.session_state.get("last_prompt", ""))
+                stored_subject = st.session_state.get("original_subject", st.session_state.get("last_subject", ""))
+                stored_recipient = st.session_state.get("original_recipient", st.session_state.get("last_recipient", ""))
                 
                 if stored_prompt:
                     regenerate_refined_email(current_user, creds, user_prefs, stored_recipient, stored_subject, stored_prompt)
@@ -669,65 +820,9 @@ def main():
                     st.error("Cannot refine again - original prompt not found")
         
         with col3:
-            if st.button("🔙 Start Over", use_container_width=True):
+            if st.button("Start Over", use_container_width=True):
                 clear_form()
                 st.rerun()
-    
-    else:
-        # Show normal work log input
-        st.markdown("**Your work log**", help="List your completed tasks")
-        
-        if st.session_state.get("form_cleared"):
-            st.session_state["raw_prompt_value"] = ""
-            st.session_state["last_selected_template"] = "Custom"
-            st.session_state["form_cleared"] = False
-        
-        # Text area with current value
-        raw_prompt = st.text_area(
-            "Your work log",
-            height=250,
-            value=st.session_state["raw_prompt_value"],
-            placeholder="Today's tasks:\n- Task 1\n- Task 2\n- Task 3",
-            key="raw_prompt_input",
-            label_visibility="collapsed"
-        )
-        
-        # Only update session state when user actually types
-        if raw_prompt != st.session_state["raw_prompt_value"]:
-            st.session_state["raw_prompt_value"] = raw_prompt
-            
-            # If user manually edits and content differs from selected template, switch to Custom
-            if st.session_state["last_selected_template"] != "Custom":
-                template_content = example_templates.get(st.session_state["last_selected_template"], "")
-                if raw_prompt != template_content:
-                    # User modified template content, but don't trigger rerun
-                    # Just update the tracking variable
-                    st.session_state["last_selected_template"] = "Custom"
-        
-        # Action buttons
-        col1, col2, col3 = st.columns([1, 1, 1])
-        
-        with col1:
-            send_button = st.button(
-                "📤 Send",
-                use_container_width=True,
-                help="Send without AI refinement"
-            )
-        
-        with col2:
-            refine_button = st.button(
-                "✨ Refine",
-                use_container_width=True,
-                help="Generate AI-polished version (editable)"
-            )
-        
-        with col3:
-            refine_and_send_button = st.button(
-                "🚀 Refine & Send",
-                type="primary",
-                use_container_width=True,
-                help="Generate and send immediately"
-            )
         
         # Validate inputs
         if send_button or refine_button or refine_and_send_button:
@@ -833,7 +928,11 @@ def handle_send(current_user, creds, user_prefs, recipient_email, subject_input,
 def handle_refine(current_user, creds, user_prefs, recipient_email, subject_input, raw_prompt):
     """Handle 'Refine' button - generate AI-refined editable preview."""
     
-    with st.spinner("✨ Refining with AI..."):
+    st.session_state["original_prompt"] = raw_prompt
+    st.session_state["original_subject"] = subject_input
+    st.session_state["original_recipient"] = recipient_email
+
+    with st.spinner("Refining with AI..."):
         tasks = prompt_parser.extract_tasks(raw_prompt)
         
         if not tasks:
@@ -861,7 +960,6 @@ def handle_refine(current_user, creds, user_prefs, recipient_email, subject_inpu
         else:
             final_subject = report.subject
         
-        # Store refined email for editing
         st.session_state["refined_email_html"] = report.body_html
         st.session_state["refined_subject"] = final_subject
         st.session_state["refined_recipient"] = recipient_email

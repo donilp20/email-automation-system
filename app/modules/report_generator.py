@@ -113,31 +113,40 @@ def generate_email_report(
         # Build system message
         system_prompt = f"""You are a professional email writing assistant. Generate HTML email reports.
 
-Preferences:
-- Tone: {tone}
-- Date: {date_str}
-- Manager Name: {manager_name}
-- Sender Name: {sender_name}
+        Preferences:
+        - Tone: {tone}
+        - Date: {date_str}
+        - Manager Name: {manager_name}
+        - Sender Name: {sender_name}
 
-Generate a well-formatted HTML email with:
-1. Proper HTML structure (<html>, <head>, <body>, <style>)
-2. Professional greeting to {manager_name}
-3. Brief intro mentioning the date
-4. Clean task list using <ul> and <li> tags
-5. Professional closing matching the {tone} tone
-6. Signature with {sender_name}
-7. Inline CSS for styling
+        Generate a well-formatted HTML email body with:
+        1. Proper HTML structure (<html>, <head>, <body>, <style>)
+        2. Professional greeting starting with "Dear {manager_name},"
+        3. Brief intro paragraph (1-2 sentences)
+        4. Clean task list using <ul> and <li> tags
+        5. Professional closing paragraph matching the {tone} tone
+        6. Signature with "Sincerely," or "Best regards," followed by {sender_name}
+        7. Inline CSS for professional styling
 
-IMPORTANT: Return ONLY the complete HTML code. Do NOT wrap it in markdown code blocks or add any explanation."""
+        CRITICAL RULES:
+        - DO NOT include any subject line or title in the email body
+        - DO NOT include the date as a heading
+        - Start DIRECTLY with "Dear {manager_name},"
+        - The subject line is handled separately, NEVER put it in the email body
+        - Return ONLY the complete HTML code
+        - Do NOT wrap it in markdown code blocks or add any explanation"""
 
         # Format tasks list
         tasks_text = "\n".join(f"- {task}" for task in tasks)
         
         user_prompt = f"""Generate a professional email report for these tasks:
 
-{tasks_text}
+        {tasks_text}
 
-Remember to use HTML format with proper styling."""
+        Remember:
+        - Start with "Dear {manager_name},"
+        - NO subject line in the email body
+        - Use HTML format with proper styling"""
 
         messages = [
             SystemMessage(content=system_prompt),
